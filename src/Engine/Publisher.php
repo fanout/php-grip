@@ -38,9 +38,13 @@ class Publisher {
                 $client->set_auth_jwt( [ 'iss' => $control_iss, ], $key );
             }
 
-            $this->clients[] = $client;
+            $this->add_client( $client );
         }
 
+    }
+
+    public function add_client( PublisherClient $client ) {
+        $this->clients[] = $client;
     }
 
 }

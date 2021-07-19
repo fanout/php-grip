@@ -6,6 +6,7 @@ namespace Fanout\Grip\Tests\Unit;
 
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Engine\Publisher;
+use Fanout\Grip\Engine\PublisherClient;
 use PHPUnit\Framework\TestCase;
 
 class PublisherTest extends TestCase {
@@ -146,6 +147,36 @@ class PublisherTest extends TestCase {
         $auth = $publisher->clients[2]->auth;
         $this->assertEquals( [ 'iss' => 'iss3' ], $auth->claim );
         $this->assertEquals( 'key==3', $auth->key );
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldAddClient() {
+        $publisher = new Publisher([
+            'control_uri' => 'uri',
+            'control_iss' => 'iss',
+            'key' => 'key==',
+        ]);
+
+        $this->assertIsArray( $publisher->clients );
+        $this->assertCount( 1, $publisher->clients );
+
+        $this->assertEquals( 'uri', $publisher->clients[0]->uri );
+        $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
+
+        /** @var JwtAuth $auth */
+        $auth = $publisher->clients[0]->auth;
+        $this->assertEquals( [ 'iss' => 'iss' ], $auth->claim );
+        $this->assertEquals( 'key==', $auth->key );
+
+        $new_client = new PublisherClient( 'uri' );
+        $publisher->add_client( $new_client );
+
+        $this->assertCount( 2, $publisher->clients );
+        $this->assertEquals( 'uri', $publisher->clients[1]->uri );
+        $this->assertNull( $publisher->clients[1]->auth );
 
     }
 
