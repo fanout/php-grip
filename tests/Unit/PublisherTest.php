@@ -3,10 +3,16 @@
 
 namespace Fanout\Grip\Tests\Unit;
 
-
 use Fanout\Grip\Auth\JwtAuth;
+use Fanout\Grip\Data\FormatBase;
+use Fanout\Grip\Data\Http\HttpResponseFormat;
+use Fanout\Grip\Data\Http\HttpStreamFormat;
+use Fanout\Grip\Data\Item;
 use Fanout\Grip\Engine\Publisher;
 use Fanout\Grip\Engine\PublisherClient;
+use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttp\Promise\RejectedPromise;
+use GuzzleHttp\Promise\RejectionException;
 use PHPUnit\Framework\TestCase;
 
 class PublisherTest extends TestCase {
@@ -177,6 +183,204 @@ class PublisherTest extends TestCase {
         $this->assertCount( 2, $publisher->clients );
         $this->assertEquals( 'uri', $publisher->clients[1]->uri );
         $this->assertNull( $publisher->clients[1]->auth );
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishCallsClientPublishes() {
+
+        $item = new Item([]);
+
+        $mock_object = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $item );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object );
+
+        $promise = $publisher->publish( 'chan', $item );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishCallsAllClientsPublishes() {
+
+        $item = new Item([]);
+
+        $mock_object_1 = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object_1->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $item );
+
+        $mock_object_2 = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object_2->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $item );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object_1 );
+        $publisher->add_client( $mock_object_2 );
+
+        $promise = $publisher->publish( 'chan', $item );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishThrowsInClientsPublish() {
+
+        $item = new Item([]);
+
+        $mock_object_1 = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object_1->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new RejectedPromise('Error'))
+            ->with( 'chan', $item );
+
+        $mock_object_2 = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object_2->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $item );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object_1 );
+        $publisher->add_client( $mock_object_2 );
+
+        $this->expectException(RejectionException::class);
+
+        $promise = $publisher->publish( 'chan', $item );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishFormatWithIdAndPrevId() {
+
+        $mock_format = $this->getMockBuilder( FormatBase::class )
+            ->getMock();
+
+        $mock_publisher_client = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_publisher_client->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $this->callback(function($item) use ($mock_format) {
+                $this->assertInstanceOf(Item::class, $item);
+                /** @var Item $item */
+                $this->assertEquals( 'id', $item->id );
+                $this->assertEquals( 'prev-id', $item->prev_id );
+                $this->assertCount( 1, $item->formats );
+
+                $this->assertSame( $mock_format, $item->formats[0] );
+
+                return true;
+            }) );
+
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_publisher_client );
+
+        $promise = $publisher->publish_formats( 'chan', $mock_format, 'id', 'prev-id' );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishHttpResponse() {
+
+        $mock_object = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $this->callback(function($item) {
+                $this->assertInstanceOf(Item::class, $item);
+                /** @var Item $item */
+                $this->assertCount( 1, $item->formats );
+                $this->assertInstanceOf(HttpResponseFormat::class, $item->formats[0]);
+                $format = $item->formats[0];
+                /** @var HttpResponseFormat $format */
+                $this->assertEquals('data', $format->body);
+                return true;
+            }) );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object );
+
+        $promise = $publisher->publish_http_response( 'chan', 'data' );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishHttpStream() {
+
+        $mock_object = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $this->callback(function($item) {
+                $this->assertInstanceOf(Item::class, $item);
+                /** @var Item $item */
+                $this->assertCount( 1, $item->formats );
+                $this->assertInstanceOf(HttpStreamFormat::class, $item->formats[0]);
+                $format = $item->formats[0];
+                /** @var HttpStreamFormat $format */
+                $this->assertEquals('data', $format->content);
+                return true;
+            }) );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object );
+
+        $promise = $publisher->publish_http_stream( 'chan', 'data' );
+
+        $promise->wait();
 
     }
 
