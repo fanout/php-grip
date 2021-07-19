@@ -47,7 +47,7 @@ class Item {
         $known_format_keys = [];
         foreach( $this->formats as $format ) {
             $name = $format->name();
-            if( array_key_exists($name, $known_format_keys ) ) {
+            if( array_key_exists( $name, $known_format_keys ) ) {
                 throw new DuplicateFormatNameError();
             }
             $known_format_keys[$name] = true;
