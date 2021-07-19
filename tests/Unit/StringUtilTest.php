@@ -97,5 +97,31 @@ class StringUtilTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals( "\\\"double-quoted string\\\"", StringUtil::escape_quotes( $input ) );
     }
 
+    /**
+     * @test
+     */
+    function shouldStringStartsWith() {
+        $test_subject = 'abcdefg';
+
+        $this->assertTrue( StringUtil::string_starts_with( $test_subject, '' ) );
+        $this->assertTrue( StringUtil::string_starts_with( $test_subject, 'abcd' ) );
+        $this->assertTrue( StringUtil::string_starts_with( $test_subject, 'ab' ) );
+        $this->assertTrue( StringUtil::string_starts_with( $test_subject, 'abcdefg' ) );
+        $this->assertFalse( StringUtil::string_starts_with( $test_subject, 'abcdf' ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldStringEndsWith() {
+        $test_subject = 'abcdefg';
+
+        $this->assertTrue( StringUtil::string_ends_with( $test_subject, '' ) );
+        $this->assertTrue( StringUtil::string_ends_with( $test_subject, 'efg' ) );
+        $this->assertTrue( StringUtil::string_ends_with( $test_subject, 'fg' ) );
+        $this->assertTrue( StringUtil::string_ends_with( $test_subject, 'abcdefg' ) );
+        $this->assertFalse( StringUtil::string_ends_with( $test_subject, 'cefg' ) );
+    }
+
 
 }

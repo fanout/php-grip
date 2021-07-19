@@ -47,4 +47,24 @@ class StringUtil {
 
     }
 
+    static function string_starts_with( string $haystack, string $needle ): bool {
+
+        if ($needle === '') {
+            return true;
+        }
+
+        return substr( $haystack, 0, strlen($needle) ) === $needle;
+
+    }
+
+    static function string_ends_with( string $haystack, string $needle ): bool {
+
+        if ($needle === '') {
+            return true;
+        }
+
+        return substr( $haystack, -strlen($needle) ) === $needle;
+
+    }
+
 }

@@ -17,7 +17,7 @@ class GripUriUtils {
         }
 
         $path = $parsed_uri[ 'path' ];
-        if( substr( $path, strlen($path) - 1 ) === '/' ) {
+        if( StringUtil::string_ends_with( $path, '/' ) ) {
             $path = substr( $path, 0, strlen($path) - 1 );
         }
         $control_uri .= $path;
@@ -34,7 +34,7 @@ class GripUriUtils {
         if( !empty( $key ) ) {
             unset( $parsed_query[ 'key' ] );
         }
-        if( !empty( $key ) && substr( $key, 0, 7 ) === 'base64:' ) {
+        if( !empty( $key ) && StringUtil::string_starts_with( $key, 'base64:' ) ) {
             $key = substr( $key, 7 );
             // When the key contains a '+' character, if the URL is built carelessly
             // and this segment of the URL contained '+' directly instead of properly
