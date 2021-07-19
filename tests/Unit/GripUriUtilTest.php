@@ -4,7 +4,7 @@
 namespace Fanout\Grip\Tests\Unit;
 
 
-use Fanout\Grip\Utils\GripUriUtils;
+use Fanout\Grip\Utils\GripUriUtil;
 use PHPUnit\Framework\TestCase;
 
 class GripUriUtilTest extends TestCase {
@@ -16,7 +16,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
 
@@ -29,7 +29,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'https://api.fanout.io/realm/realm';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'https://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
 
@@ -42,7 +42,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm/';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
 
@@ -55,7 +55,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm?iss=realm';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
         $this->assertEquals( 'realm', $parsed[ 'control_iss' ] );
@@ -69,7 +69,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm?key=base64:geag%2B21321=';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
         $this->assertEquals( base64_decode( 'geag+21321=' ), $parsed[ 'key' ] );
@@ -83,7 +83,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm?key=base64:geag+21321=';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
         $this->assertEquals( base64_decode( 'geag+21321=' ), $parsed[ 'key' ] );
@@ -97,7 +97,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm?iss=realm&key=base64:geag121321=';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm', $parsed[ 'control_uri' ] );
         $this->assertEquals( 'realm', $parsed[ 'control_iss' ] );
@@ -112,7 +112,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io/realm/realm?iss=realm&key=base64:geag121321=&param1=value1&param2=value2';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io/realm/realm?param1=value1&param2=value2', $parsed[ 'control_uri' ] );
         $this->assertEquals( 'realm', $parsed[ 'control_iss' ] );
@@ -127,7 +127,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io:80/realm/realm/';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io:80/realm/realm', $parsed[ 'control_uri' ] );
 
@@ -140,7 +140,7 @@ class GripUriUtilTest extends TestCase {
 
         $uri = 'http://api.fanout.io:8080/realm/realm/';
 
-        $parsed = GripUriUtils::parse( $uri );
+        $parsed = GripUriUtil::parse( $uri );
 
         $this->assertEquals( 'http://api.fanout.io:8080/realm/realm', $parsed[ 'control_uri' ] );
 

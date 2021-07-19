@@ -4,7 +4,7 @@
 namespace Fanout\Grip\Utils;
 
 
-class GripUriUtils {
+class GripUriUtil {
     static function parse( string $uri ) {
 
         $parsed_uri = parse_url( $uri );
