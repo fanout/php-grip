@@ -17,3 +17,8 @@ At the current moment the only supported installation uses Composer.
 ```
     composer install fanout/php-grip
 ```
+
+## Example
+
+For an HTTP Stream publishing example,
+see README.md in the `examples/http-stream` directory.
