@@ -16,6 +16,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use GuzzleHttp\Psr7\Utils;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use RuntimeException;
@@ -55,9 +56,9 @@ class PublisherClientTest extends TestCase {
      * @test
      */
     function shouldConstructWithUriOnly() {
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
-        $this->assertEquals( 'uri', $client->uri );
+        $this->assertEquals( 'http://uri', $client->uri );
         $this->assertNull( $client->auth );
     }
 
@@ -65,9 +66,9 @@ class PublisherClientTest extends TestCase {
      * @test
      */
     function shouldConstructWithUriWithTrailingSlash() {
-        $client = new PublisherClient( 'uri/' );
+        $client = new PublisherClient( 'http://uri/' );
 
-        $this->assertEquals( 'uri', $client->uri );
+        $this->assertEquals( 'http://uri', $client->uri );
         $this->assertNull( $client->auth );
     }
 
@@ -75,7 +76,7 @@ class PublisherClientTest extends TestCase {
      * @test
      */
     function shouldSetBasicAuth() {
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
         $client->set_auth_basic( 'user', 'pass' );
 
         $this->assertInstanceOf( BasicAuth::class, $client->auth );
@@ -90,7 +91,7 @@ class PublisherClientTest extends TestCase {
      * @test
      */
     function shouldSetJwtAuthWithClaimAndKey() {
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $claim = [ 'iss' => 'iss' ];
         $client->set_auth_jwt( $claim, 'key' );
@@ -107,7 +108,7 @@ class PublisherClientTest extends TestCase {
      * @test
      */
     function shouldSetJwtAuthWithToken() {
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $client->set_auth_jwt( 'token' );
 
@@ -127,7 +128,7 @@ class PublisherClientTest extends TestCase {
         ]);
         PublisherClient::$guzzle_client = $guzzle_mock->client;
 
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
         $client->set_auth_basic( 'user', 'pass' );
 
         $item = new Item( new TestFormat( 'body' ) );
@@ -152,11 +153,12 @@ class PublisherClientTest extends TestCase {
                 $request = $transaction[ 'request' ];
 
                 $this->assertEquals( 'POST' , $request->getMethod() );
-                $this->assertEquals( 'uri/publish/', $request->getUri() );
+                $this->assertEquals( 'http://uri/publish/', $request->getUri() );
                 $this->assertEquals( [
                     'Content-Type' => [ 'application/json' ],
                     'Content-Length' => [ strlen( json_encode( $content ) ) ],
                     'Authorization' => [ 'Basic ' . base64_encode( 'user:pass' ) ],
+                    'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
 
             })
@@ -174,7 +176,7 @@ class PublisherClientTest extends TestCase {
         ]);
         PublisherClient::$guzzle_client = $guzzle_mock->client;
 
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $item = new Item( new TestFormat( 'body' ) );
 
@@ -197,10 +199,11 @@ class PublisherClientTest extends TestCase {
                 $request = $transaction[ 'request' ];
 
                 $this->assertEquals( 'POST' , $request->getMethod() );
-                $this->assertEquals( 'uri/publish/', $request->getUri() );
+                $this->assertEquals( 'http://uri/publish/', $request->getUri() );
                 $this->assertEquals( [
                     'Content-Type' => [ 'application/json' ],
                     'Content-Length' => [ strlen( json_encode( $content ) ) ],
+                    'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
 
             })
@@ -217,7 +220,7 @@ class PublisherClientTest extends TestCase {
         ]);
         PublisherClient::$guzzle_client = $guzzle_mock->client;
 
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $item = new Item( new TestFormat( 'body' ) );
 
@@ -242,7 +245,7 @@ class PublisherClientTest extends TestCase {
         ]);
         PublisherClient::$guzzle_client = $guzzle_mock->client;
 
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $item = new Item( new TestFormat( 'body' ) );
 
@@ -268,7 +271,7 @@ class PublisherClientTest extends TestCase {
         ]);
         PublisherClient::$guzzle_client = $guzzle_mock->client;
 
-        $client = new PublisherClient( 'uri' );
+        $client = new PublisherClient( 'http://uri' );
 
         $item = new Item( new TestFormat( 'body' ) );
 
@@ -284,6 +287,14 @@ class PublisherClientTest extends TestCase {
             })
             ->wait();
 
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublisherClientRejectInvalidURI() {
+        $this->expectException(InvalidArgumentException::class);
+        new PublisherClient( 'uri' );
     }
 
 }

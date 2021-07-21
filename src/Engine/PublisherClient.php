@@ -14,6 +14,7 @@ use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use InvalidArgumentException;
 use Throwable;
 
 // The PublisherClient class allows consumers to publish to an endpoint of
@@ -30,6 +31,14 @@ class PublisherClient {
         if (StringUtil::string_ends_with( $uri, '/' )) {
             $uri = substr( $uri, 0, strlen( $uri ) - 1 );
         }
+
+        if (!filter_var( $uri, FILTER_VALIDATE_URL ) || (
+            !StringUtil::string_starts_with($uri,'http://') &&
+            !StringUtil::string_starts_with($uri,'https://')
+        )) {
+            throw new InvalidArgumentException('uri');
+        }
+
         $this->uri = $uri;
         $this->auth = null;
     }

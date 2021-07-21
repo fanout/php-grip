@@ -35,7 +35,7 @@ class PublisherTest extends TestCase {
     function shouldConstructOneClient() {
 
         $publisher = new Publisher([
-            'control_uri' => 'uri',
+            'control_uri' => 'http://uri',
             'control_iss' => 'iss',
             'key' => 'key==',
         ]);
@@ -43,7 +43,7 @@ class PublisherTest extends TestCase {
         $this->assertIsArray( $publisher->clients );
         $this->assertCount( 1, $publisher->clients );
 
-        $this->assertEquals( 'uri', $publisher->clients[0]->uri );
+        $this->assertEquals( 'http://uri', $publisher->clients[0]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
 
         /** @var JwtAuth $auth */
@@ -60,12 +60,12 @@ class PublisherTest extends TestCase {
 
         $publisher = new Publisher([
             [
-                'control_uri' => 'uri2',
+                'control_uri' => 'http://uri2',
                 'control_iss' => 'iss2',
                 'key' => 'key==2',
             ],
             [
-                'control_uri' => 'uri3',
+                'control_uri' => 'http://uri3',
                 'control_iss' => 'iss3',
                 'key' => 'key==3',
             ],
@@ -74,7 +74,7 @@ class PublisherTest extends TestCase {
         $this->assertIsArray( $publisher->clients );
         $this->assertCount( 2, $publisher->clients );
 
-        $this->assertEquals( 'uri2', $publisher->clients[0]->uri );
+        $this->assertEquals( 'http://uri2', $publisher->clients[0]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
 
         /** @var JwtAuth $auth */
@@ -82,7 +82,7 @@ class PublisherTest extends TestCase {
         $this->assertEquals( [ 'iss' => 'iss2' ], $auth->claim );
         $this->assertEquals( 'key==2', $auth->key );
 
-        $this->assertEquals( 'uri3', $publisher->clients[1]->uri );
+        $this->assertEquals( 'http://uri3', $publisher->clients[1]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[1]->auth );
 
         /** @var JwtAuth $auth */
@@ -98,7 +98,7 @@ class PublisherTest extends TestCase {
     function shouldAllowAdditionalConfigs() {
 
         $publisher = new Publisher([
-            'control_uri' => 'uri',
+            'control_uri' => 'http://uri',
             'control_iss' => 'iss',
             'key' => 'key==',
         ]);
@@ -106,7 +106,7 @@ class PublisherTest extends TestCase {
         $this->assertIsArray( $publisher->clients );
         $this->assertCount( 1, $publisher->clients );
 
-        $this->assertEquals( 'uri', $publisher->clients[0]->uri );
+        $this->assertEquals( 'http://uri', $publisher->clients[0]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
 
         /** @var JwtAuth $auth */
@@ -116,12 +116,12 @@ class PublisherTest extends TestCase {
 
         $publisher->apply_config([
             [
-                'control_uri' => 'uri2',
+                'control_uri' => 'http://uri2',
                 'control_iss' => 'iss2',
                 'key' => 'key==2',
             ],
             [
-                'control_uri' => 'uri3',
+                'control_uri' => 'http://uri3',
                 'control_iss' => 'iss3',
                 'key' => 'key==3',
             ],
@@ -130,7 +130,7 @@ class PublisherTest extends TestCase {
         $this->assertIsArray( $publisher->clients );
         $this->assertCount( 3, $publisher->clients );
 
-        $this->assertEquals( 'uri', $publisher->clients[0]->uri );
+        $this->assertEquals( 'http://uri', $publisher->clients[0]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
 
         /** @var JwtAuth $auth */
@@ -138,7 +138,7 @@ class PublisherTest extends TestCase {
         $this->assertEquals( [ 'iss' => 'iss' ], $auth->claim );
         $this->assertEquals( 'key==', $auth->key );
 
-        $this->assertEquals( 'uri2', $publisher->clients[1]->uri );
+        $this->assertEquals( 'http://uri2', $publisher->clients[1]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[1]->auth );
 
         /** @var JwtAuth $auth */
@@ -146,7 +146,7 @@ class PublisherTest extends TestCase {
         $this->assertEquals( [ 'iss' => 'iss2' ], $auth->claim );
         $this->assertEquals( 'key==2', $auth->key );
 
-        $this->assertEquals( 'uri3', $publisher->clients[2]->uri );
+        $this->assertEquals( 'http://uri3', $publisher->clients[2]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[2]->auth );
 
         /** @var JwtAuth $auth */
@@ -161,7 +161,7 @@ class PublisherTest extends TestCase {
      */
     function shouldAddClient() {
         $publisher = new Publisher([
-            'control_uri' => 'uri',
+            'control_uri' => 'http://uri',
             'control_iss' => 'iss',
             'key' => 'key==',
         ]);
@@ -169,7 +169,7 @@ class PublisherTest extends TestCase {
         $this->assertIsArray( $publisher->clients );
         $this->assertCount( 1, $publisher->clients );
 
-        $this->assertEquals( 'uri', $publisher->clients[0]->uri );
+        $this->assertEquals( 'http://uri', $publisher->clients[0]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[0]->auth );
 
         /** @var JwtAuth $auth */
@@ -177,11 +177,11 @@ class PublisherTest extends TestCase {
         $this->assertEquals( [ 'iss' => 'iss' ], $auth->claim );
         $this->assertEquals( 'key==', $auth->key );
 
-        $new_client = new PublisherClient( 'uri' );
+        $new_client = new PublisherClient( 'http://uri' );
         $publisher->add_client( $new_client );
 
         $this->assertCount( 2, $publisher->clients );
-        $this->assertEquals( 'uri', $publisher->clients[1]->uri );
+        $this->assertEquals( 'http://uri', $publisher->clients[1]->uri );
         $this->assertNull( $publisher->clients[1]->auth );
 
     }
