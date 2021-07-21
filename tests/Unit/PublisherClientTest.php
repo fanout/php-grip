@@ -156,7 +156,7 @@ class PublisherClientTest extends TestCase {
                 $this->assertEquals( 'http://uri/publish/', $request->getUri() );
                 $this->assertEquals( [
                     'Content-Type' => [ 'application/json' ],
-                    'Content-Length' => [ strlen( json_encode( $content ) ) ],
+                    'Content-Length' => [ strval( strlen( $content_json ) ) ],
                     'Authorization' => [ 'Basic ' . base64_encode( 'user:pass' ) ],
                     'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
@@ -202,7 +202,7 @@ class PublisherClientTest extends TestCase {
                 $this->assertEquals( 'http://uri/publish/', $request->getUri() );
                 $this->assertEquals( [
                     'Content-Type' => [ 'application/json' ],
-                    'Content-Length' => [ strlen( json_encode( $content ) ) ],
+                    'Content-Length' => [ strval( strlen( $content_json ) ) ],
                     'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
 

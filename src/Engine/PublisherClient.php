@@ -67,7 +67,7 @@ class PublisherClient {
 
         $headers = [
             'Content-Type' => 'application/json',
-            'Content-Length' => strlen( $content_json ),
+            'Content-Length' => strval( strlen( $content_json ) ),
         ];
         if( !empty( $this->auth ) ) {
             $headers[ 'Authorization' ] = $this->auth->build_header();
