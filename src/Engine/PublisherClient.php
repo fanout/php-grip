@@ -7,9 +7,14 @@ use Fanout\Grip\Auth\BasicAuth;
 use Fanout\Grip\Auth\IAuth;
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\Item;
+use Fanout\Grip\Errors\PublishError;
 use Fanout\Grip\Utils\StringUtil;
+use GuzzleHttp\Client;
 use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Throwable;
 
 // The PublisherClient class allows consumers to publish to an endpoint of
 // their choice. The consumer wraps a Format class instance in an Item class
@@ -18,6 +23,8 @@ class PublisherClient {
 
     public string $uri;
     public ?IAuth $auth;
+
+    public static ?Client $guzzle_client;
 
     public function __construct( string $uri ) {
         if (StringUtil::string_ends_with( $uri, '/' )) {
@@ -40,7 +47,70 @@ class PublisherClient {
     }
 
     public function publish( string $channel, Item $item ): PromiseInterface {
-        return new FulfilledPromise( true );
+
+        // prepare request body
+        $export = $item->export();
+        $export[ 'channel' ] = $channel;
+        $content = [
+            'items' => [ $export ],
+        ];
+        $content_json = json_encode( $content );
+
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Content-Length' => strlen( $content_json ),
+        ];
+        if( !empty( $this->auth ) ) {
+            $headers[ 'Authorization' ] = $this->auth->build_header();
+        }
+
+        $url = $this->uri . '/publish/';
+
+        $request = new Request(
+            'POST',
+            $url,
+            $headers,
+            $content_json
+        );
+
+        return static::$guzzle_client
+            ->sendAsync($request, ['http_errors' => false])
+            ->otherwise(function($error) {
+                throw new PublishError( $error->getMessage(), [ 'status_code' => -1 ]);
+            })
+            ->then(function($response) {
+
+                /** @var Response $response */
+                $status_code = $response->getStatusCode();
+
+                $context = [
+                    'status_code' => $status_code,
+                    'headers' => $response->getHeaders(),
+                ];
+
+                $body = $response->getBody();
+                try {
+                    $mode = 'end';
+                    $data = $body->getContents();
+                } catch(Throwable $exception) {
+                    $mode = 'close';
+                    $data = $exception;
+                }
+
+                $context[ 'http_body' ] = $data;
+                if ($mode === 'end') {
+                    if ($status_code < 200 || $status_code >= 300) {
+                        throw new PublishError( is_string($context['http_body']) ? $context['http_body'] : json_encode($context['http_body']), $context );
+                    }
+                } else {
+                    throw new PublishError( 'Connection Closed Unexpectedly', $context );
+                }
+
+                return $response;
+
+            });
+
     }
 
 }
+PublisherClient::$guzzle_client = new Client();
