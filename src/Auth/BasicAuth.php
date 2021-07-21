@@ -16,6 +16,6 @@ class BasicAuth implements IAuth {
 
     function build_header(): string {
         $data = "{$this->user}:{$this->pass}";
-        return base64_encode($data);
+        return "Basic " . base64_encode($data);
     }
 }

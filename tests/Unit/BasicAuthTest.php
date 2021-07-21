@@ -26,7 +26,7 @@ class BasicAuthTest extends TestCase {
 
         $basic_auth = new BasicAuth( 'username', 'password' );
 
-        $this->assertSame( base64_encode('username:password'), $basic_auth->build_header() );
+        $this->assertSame( 'Basic ' . base64_encode('username:password'), $basic_auth->build_header() );
 
     }
 }
