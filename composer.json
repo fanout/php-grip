@@ -1,5 +1,5 @@
 {
-  "name": "harmony7/php-grip",
+  "name": "fanout/php-grip",
   "description": "Grip library for PHP",
   "type": "library",
   "license": "MIT",
