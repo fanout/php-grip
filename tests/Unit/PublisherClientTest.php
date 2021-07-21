@@ -141,11 +141,11 @@ class PublisherClientTest extends TestCase {
                 $content = [
                     'items' => [ $export ],
                 ];
+                $content_json = json_encode( $content );
 
                 $this->assertCount( 1, $guzzle_mock->transactions );
 
                 $transaction = $guzzle_mock->transactions[0];
-
 
                 /**
                  * @var $request RequestInterface
@@ -160,6 +160,7 @@ class PublisherClientTest extends TestCase {
                     'Authorization' => [ 'Basic ' . base64_encode( 'user:pass' ) ],
                     'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
+                $this->assertEquals( $content_json, (string) $request->getBody() );
 
             })
             ->wait();
@@ -188,6 +189,7 @@ class PublisherClientTest extends TestCase {
                 $content = [
                     'items' => [ $export ],
                 ];
+                $content_json = json_encode( $content );
 
                 $this->assertCount( 1, $guzzle_mock->transactions );
 
@@ -205,6 +207,7 @@ class PublisherClientTest extends TestCase {
                     'Content-Length' => [ strval( strlen( $content_json ) ) ],
                     'Host' => [ 'uri' ],
                 ], $request->getHeaders() );
+                $this->assertEquals( $content_json, (string) $request->getBody() );
 
             })
             ->wait();
