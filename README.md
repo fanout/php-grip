@@ -15,7 +15,7 @@ Installation:
 At the current moment the only supported installation uses Composer.
 
 ```
-    composer install fanout/php-grip
+    composer install fanout/grip
 ```
 
 This version does not yet include all of the features for WebSocket-over-HTTP.
