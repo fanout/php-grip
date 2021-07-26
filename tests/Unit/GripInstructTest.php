@@ -6,7 +6,9 @@ namespace Fanout\Grip\Tests\Unit;
 
 use Fanout\Grip\Data\Channel;
 use Fanout\Grip\Data\GripInstruct;
+use Fanout\Grip\Tests\Utils\TestStreamData;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
 
 class GripInstructTest extends TestCase {
 
@@ -99,17 +101,22 @@ class GripInstructTest extends TestCase {
         $grip_instruct = new GripInstruct();
         $this->assertNull( $grip_instruct->keep_alive_data );
 
-        $grip_instruct->set_keep_alive( 'keepalive-data', GripInstruct::KEEPALIVE_DATA_FORMAT_STRING, 5 );
-        $this->assertSame( 'keepalive-data', $grip_instruct->keep_alive_data );
-        $this->assertSame( GripInstruct::KEEPALIVE_DATA_FORMAT_STRING, $grip_instruct->keep_alive_data_format );
+        // A string will be stored as is
+        $grip_instruct->set_keep_alive( 'keepalive-data', 5 );
+        $this->assertEquals( 'keepalive-data', $grip_instruct->keep_alive_data );
         $this->assertSame( 5, $grip_instruct->keep_alive_timeout );
 
-        $data = pack( 'C*', 0x41, 0x42, 0x43 );
-        $grip_instruct->set_keep_alive( $data, GripInstruct::KEEPALIVE_DATA_FORMAT_PACK, 10 );
-        $this->assertSame( pack( 'C*', 0x41, 0x42, 0x43 ), $grip_instruct->keep_alive_data );
-        $this->assertSame( GripInstruct::KEEPALIVE_DATA_FORMAT_PACK, $grip_instruct->keep_alive_data_format );
+        // A StreamInterface will be stored as is
+        $grip_instruct->set_keep_alive( TestStreamData::$sample_stream, 10 );
+        $this->assertEquals( TestStreamData::$sample_stream, $grip_instruct->keep_alive_data );
         $this->assertSame( 10, $grip_instruct->keep_alive_timeout );
 
+        // Other things will be turned into streams by being passed into Utils::streamFor.
+        $grip_instruct->set_keep_alive( TestStreamData::get_sample_iterator(), 10 );
+        $this->assertInstanceOf( StreamInterface::class, $grip_instruct->keep_alive_data );
+
+        $this->assertSame( TestStreamData::$sample_iterator_values_to_string, $grip_instruct->keep_alive_data->getContents() );
+        $this->assertSame( 10, $grip_instruct->keep_alive_timeout );
     }
 
     /**
@@ -219,11 +226,11 @@ class GripInstructTest extends TestCase {
     /**
      * @test
      */
-    public function shouldBuildGripHeadersLongPollKeepAliveCString() {
+    public function shouldBuildGripHeadersLongPollKeepAliveString() {
 
         $grip_instruct = new GripInstruct( 'foo' );
         $grip_instruct->set_hold_long_poll( 100 );
-        $grip_instruct->set_keep_alive( 'bar', GripInstruct::KEEPALIVE_DATA_FORMAT_STRING, 150 );
+        $grip_instruct->set_keep_alive( 'bar', 150 );
         $this->assertSame([
             'Grip-Channel' => 'foo',
             'Grip-Hold' => 'response',
@@ -236,16 +243,34 @@ class GripInstructTest extends TestCase {
     /**
      * @test
      */
-    public function shouldBuildGripHeadersLongPollKeepAliveBase64() {
+    public function shouldBuildGripHeadersLongPollKeepAliveStream() {
 
         $grip_instruct = new GripInstruct( 'foo' );
         $grip_instruct->set_hold_long_poll( 100 );
-        $grip_instruct->set_keep_alive( pack('C*', 0x41, 0x42, 0x43), GripInstruct::KEEPALIVE_DATA_FORMAT_PACK, 150 );
+        $grip_instruct->set_keep_alive( TestStreamData::$sample_stream, 150 );
         $this->assertSame([
             'Grip-Channel' => 'foo',
             'Grip-Hold' => 'response',
             'Grip-Timeout' => '100',
-            'Grip-Keep-Alive' => 'QUJD; format=base64; timeout=150',
+            'Grip-Keep-Alive' => TestStreamData::$sample_stream_value_to_base64 . '; format=base64; timeout=150',
+        ], $grip_instruct->build_headers());
+
+    }
+
+    /**
+     * @test
+     */
+    public function shouldBuildGripHeadersLongPollKeepAliveConverted() {
+
+        $grip_instruct = new GripInstruct( 'foo' );
+        $grip_instruct->set_hold_long_poll( 100 );
+
+        $grip_instruct->set_keep_alive( TestStreamData::get_sample_iterator(), 150 );
+        $this->assertSame([
+            'Grip-Channel' => 'foo',
+            'Grip-Hold' => 'response',
+            'Grip-Timeout' => '100',
+            'Grip-Keep-Alive' => TestStreamData::$sample_iterator_values_to_base64 . '; format=base64; timeout=150',
         ], $grip_instruct->build_headers());
 
     }

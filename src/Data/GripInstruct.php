@@ -5,12 +5,12 @@ namespace Fanout\Grip\Data;
 
 
 use Fanout\Grip\Utils\StringUtil;
+use GuzzleHttp\Psr7\Utils;
+use Iterator;
+use Psr\Http\Message\StreamInterface;
 use Throwable;
 
 class GripInstruct {
-
-    const KEEPALIVE_DATA_FORMAT_STRING = 'STRING';
-    const KEEPALIVE_DATA_FORMAT_PACK = 'PACK';
 
     /** @var Channel[] */
     public $channels = [];
@@ -31,14 +31,9 @@ class GripInstruct {
     public $timeout = 0;
 
     /**
-     * @var string|null
+     * @var StreamInterface|string|null
      */
     public $keep_alive_data = null;
-
-    /**
-     * @var string
-     */
-    public $keep_alive_data_format = self::KEEPALIVE_DATA_FORMAT_STRING;
 
     /**
      * @var int
@@ -98,9 +93,12 @@ class GripInstruct {
         $this->hold = 'stream';
     }
 
-    public function set_keep_alive( string $data, string $data_format, int $timeout_secs ) {
-        $this->keep_alive_data = $data;
-        $this->keep_alive_data_format = $data_format;
+    /**
+     * @param resource|string|int|float|bool|StreamInterface|callable|Iterator|null $data
+     * @param int $timeout_secs
+     */
+    public function set_keep_alive( $data, int $timeout_secs ) {
+        $this->keep_alive_data = gettype( $data ) === 'string' ? $data : Utils::streamFor( $data );
         $this->keep_alive_timeout = $timeout_secs;
     }
 
@@ -124,10 +122,10 @@ class GripInstruct {
         return join(', ', $segments );
     }
 
-    private function build_keep_alive_header(): string {
+    public function build_keep_alive_header(): string {
 
         $output = null;
-        if( $this->keep_alive_data_format === self::KEEPALIVE_DATA_FORMAT_STRING ) {
+        if( gettype( $this->keep_alive_data ) === 'string' ) {
             try {
                 $output = StringUtil::encode_cstring( $this->keep_alive_data );
                 $output .= '; format=cstring';

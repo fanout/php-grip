@@ -5,29 +5,41 @@ namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Data\Http\HttpStreamFormat;
+use Fanout\Grip\Tests\Utils\TestStreamData;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
 
 class HttpStreamFormatTest extends TestCase {
 
     /**
      * @test
      */
-    function shouldConstructSimple() {
+    function shouldConstructString() {
         $format = new HttpStreamFormat( 'content' );
 
         $this->assertEquals( 'content', $format->content );
-        $this->assertEquals( HttpStreamFormat::HTTP_RESPONSE_BODY_FORMAT_STRING, $format->content_format );
         $this->assertFalse( $format->close );
     }
 
     /**
      * @test
      */
-    function shouldConstructPack() {
-        $format = new HttpStreamFormat( pack( 'C*', 0x41, 0x42, 0x43 ), HttpStreamFormat::HTTP_RESPONSE_BODY_FORMAT_PACK );
+    function shouldConstructStream() {
+        $format = new HttpStreamFormat( TestStreamData::$sample_stream );
 
-        $this->assertEquals( pack( 'C*', 0x41, 0x42, 0x43 ), $format->content );
-        $this->assertEquals( HttpStreamFormat::HTTP_RESPONSE_BODY_FORMAT_PACK, $format->content_format );
+        $this->assertEquals( TestStreamData::$sample_stream, $format->content );
+        $this->assertFalse( $format->close );
+    }
+
+    /**
+     * @test
+     */
+    function shouldConstructConverted() {
+        $format = new HttpStreamFormat( TestStreamData::get_sample_iterator() );
+
+        $this->assertInstanceOf( StreamInterface::class, $format->content );
+        $this->assertEquals( TestStreamData::$sample_iterator_values_to_string, $format->content->getContents() );
+
         $this->assertFalse( $format->close );
     }
 
@@ -35,7 +47,7 @@ class HttpStreamFormatTest extends TestCase {
      * @test
      */
     function shouldConstructClose() {
-        $format = new HttpStreamFormat( 'content', HttpStreamFormat::HTTP_RESPONSE_BODY_FORMAT_STRING, true );
+        $format = new HttpStreamFormat( 'content', true );
 
         $this->assertEquals( 'content', $format->content );
         $this->assertTrue( $format->close );
@@ -53,7 +65,7 @@ class HttpStreamFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportSimple() {
+    function shouldExportString() {
         $format = new HttpStreamFormat( 'message' );
 
         $export = $format->export();
@@ -67,22 +79,36 @@ class HttpStreamFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportPack() {
-        $format = new HttpStreamFormat( pack( 'C*', 0x41, 0x42, 0x43 ), HttpStreamFormat::HTTP_RESPONSE_BODY_FORMAT_PACK );
+    function shouldExportStream() {
+        $format = new HttpStreamFormat( TestStreamData::$sample_stream );
 
         $export = $format->export();
 
         $this->assertIsArray( $export );
         $this->assertArrayNotHasKey( 'action', $export );
         $this->assertArrayNotHasKey( 'content', $export );
-        $this->assertEquals( 'QUJD', $export[ 'content-bin' ] );
+        $this->assertEquals( TestStreamData::$sample_stream_value_to_base64, $export[ 'content-bin' ] );
+    }
+
+    /**
+     * @test
+     */
+    function shouldExportConverted() {
+        $format = new HttpStreamFormat( TestStreamData::get_sample_iterator() );
+
+        $export = $format->export();
+
+        $this->assertIsArray( $export );
+        $this->assertArrayNotHasKey( 'action', $export );
+        $this->assertArrayNotHasKey( 'content', $export );
+        $this->assertEquals( TestStreamData::$sample_iterator_values_to_base64, $export[ 'content-bin' ] );
     }
 
     /**
      * @test
      */
     function shouldExportClose() {
-        $format = new HttpStreamFormat( null, null, true );
+        $format = new HttpStreamFormat( null, true );
 
         $export = $format->export();
 

@@ -5,11 +5,10 @@ namespace Fanout\Grip\Data\Http;
 
 
 use Fanout\Grip\Data\FormatBase;
+use GuzzleHttp\Psr7\Utils;
+use Psr\Http\Message\StreamInterface;
 
 class HttpStreamFormat extends FormatBase {
-
-    const HTTP_RESPONSE_BODY_FORMAT_STRING = 'STRING';
-    const HTTP_RESPONSE_BODY_FORMAT_PACK = 'PACK';
 
     /**
      * @var string|null
@@ -26,9 +25,19 @@ class HttpStreamFormat extends FormatBase {
      */
     public $close;
 
-    public function __construct( ?string $content, ?string $content_format = self::HTTP_RESPONSE_BODY_FORMAT_STRING, $close = false ) {
-        $this->content = $content;
-        $this->content_format = $content_format;
+    /**
+     * HttpStreamFormat constructor.
+     * @param StreamInterface|string|null $content
+     * @param bool $close
+     */
+    public function __construct( $content, bool $close = false ) {
+
+        if( is_null( $content ) || gettype( $content ) === 'string' ) {
+            $this->content = $content;
+        } else {
+            $this->content = Utils::streamFor( $content );
+        }
+
         $this->close = $close;
     }
 
@@ -43,7 +52,7 @@ class HttpStreamFormat extends FormatBase {
             $obj[ 'action' ] = 'close';
             $obj[ 'content' ] = '';
         } else if( !is_null( $this->content ) ) {
-            if( $this->content_format === self::HTTP_RESPONSE_BODY_FORMAT_STRING ) {
+            if( !( $this->content instanceof StreamInterface ) ) {
                 $obj[ 'content' ] = $this->content;
             } else {
                 $obj[ 'content-bin' ] = base64_encode( $this->content );

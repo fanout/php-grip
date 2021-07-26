@@ -5,18 +5,19 @@ namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Data\WebSockets\WebSocketMessageFormat;
+use Fanout\Grip\Tests\Utils\TestStreamData;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
 
 class WebSocketMessageFormatTest extends TestCase {
 
     /**
      * @test
      */
-    function shouldConstructWithString() {
+    function shouldConstructString() {
         $format = new WebSocketMessageFormat( 'hello' );
         $this->assertEquals( 'hello', $format->content );
-        $this->assertEquals( WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, $format->content_format );
         $this->assertFalse( $format->close );
         $this->assertNull( $format->code );
     }
@@ -24,10 +25,22 @@ class WebSocketMessageFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldConstructWithPack() {
-        $format = new WebSocketMessageFormat( pack( 'C*', 0x41, 0x42, 0x43 ), WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_PACK );
-        $this->assertEquals( pack( 'C*', 0x41, 0x42, 0x43 ), $format->content );
-        $this->assertEquals( WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_PACK, $format->content_format );
+    function shouldConstructStream() {
+        $format = new WebSocketMessageFormat( TestStreamData::$sample_stream );
+        $this->assertEquals( TestStreamData::$sample_stream, $format->content );
+        $this->assertFalse( $format->close );
+        $this->assertNull( $format->code );
+    }
+
+    /**
+     * @test
+     */
+    function shouldConstructConverted() {
+        $format = new WebSocketMessageFormat( TestStreamData::get_sample_iterator() );
+
+        $this->assertInstanceOf( StreamInterface::class, $format->content );
+        $this->assertEquals( TestStreamData::$sample_iterator_values_to_string, $format->content->getContents() );
+
         $this->assertFalse( $format->close );
         $this->assertNull( $format->code );
     }
@@ -45,16 +58,15 @@ class WebSocketMessageFormatTest extends TestCase {
      */
     function shouldNotConstructWithStringAndClose() {
         $this->expectException( InvalidArgumentException::class );
-        new WebSocketMessageFormat( 'hello', WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, true );
+        new WebSocketMessageFormat( 'hello', true );
     }
 
     /**
      * @test
      */
     function shouldConstructWithClose() {
-        $format = new WebSocketMessageFormat( null, WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, true );
+        $format = new WebSocketMessageFormat( null, true );
         $this->assertNull( $format->content );
-        $this->assertEquals( WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, $format->content_format );
         $this->assertTrue( $format->close );
         $this->assertNull( $format->code );
     }
@@ -63,9 +75,8 @@ class WebSocketMessageFormatTest extends TestCase {
      * @test
      */
     function shouldConstructWithCloseAndCode() {
-        $format = new WebSocketMessageFormat( null, WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, true, 1009 );
+        $format = new WebSocketMessageFormat( null, true, 1009 );
         $this->assertEquals( null, $format->content );
-        $this->assertEquals( WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, $format->content_format );
         $this->assertTrue( $format->close );
         $this->assertEquals( 1009, $format->code );
     }
@@ -75,7 +86,7 @@ class WebSocketMessageFormatTest extends TestCase {
      */
     function shoulNotConstructWithCodeUnlessCloseMessage() {
         $this->expectException( InvalidArgumentException::class );
-        new WebSocketMessageFormat( null, WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, false, 1009 );
+        new WebSocketMessageFormat( null, false, 1009 );
     }
 
     /**
@@ -89,7 +100,7 @@ class WebSocketMessageFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportWithString() {
+    function shouldExportString() {
         $format = new WebSocketMessageFormat( 'hello' );
 
         $export = $format->export();
@@ -103,11 +114,25 @@ class WebSocketMessageFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportWithPack() {
-        $format = new WebSocketMessageFormat( pack( 'C*', 0x41, 0x42, 0x43 ), WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_PACK );
+    function shouldExportStream() {
+        $format = new WebSocketMessageFormat( TestStreamData::$sample_stream );
 
         $export = $format->export();
-        $this->assertEquals( 'QUJD', $export['content-bin'] );
+        $this->assertEquals( TestStreamData::$sample_stream_value_to_base64, $export['content-bin'] );
+        $this->assertArrayNotHasKey( 'content', $export );
+
+        $this->assertArrayNotHasKey( 'close', $export );
+        $this->assertArrayNotHasKey( 'code', $export );
+    }
+
+    /**
+     * @test
+     */
+    function shouldExportConverted() {
+        $format = new WebSocketMessageFormat( TestStreamData::get_sample_iterator() );
+
+        $export = $format->export();
+        $this->assertEquals( TestStreamData::$sample_iterator_values_to_base64, $export['content-bin'] );
         $this->assertArrayNotHasKey( 'content', $export );
 
         $this->assertArrayNotHasKey( 'close', $export );
@@ -118,7 +143,7 @@ class WebSocketMessageFormatTest extends TestCase {
      * @test
      */
     function shouldExportWithClose() {
-        $format = new WebSocketMessageFormat( null, WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, true );
+        $format = new WebSocketMessageFormat( null, true );
 
         $export = $format->export();
         $this->assertEquals( 'close', $export[ 'action' ] );
@@ -132,7 +157,7 @@ class WebSocketMessageFormatTest extends TestCase {
      * @test
      */
     function shouldExportWithCloseAndCode() {
-        $format = new WebSocketMessageFormat( null, WebSocketMessageFormat::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, true, 1009 );
+        $format = new WebSocketMessageFormat( null, true, 1009 );
 
         $export = $format->export();
         $this->assertEquals( 'close', $export[ 'action' ] );

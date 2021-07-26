@@ -5,11 +5,10 @@ namespace Fanout\Grip\Data\Http;
 
 
 use Fanout\Grip\Data\FormatBase;
+use GuzzleHttp\Psr7\Utils;
+use Psr\Http\Message\StreamInterface;
 
 class HttpResponseFormat extends FormatBase {
-
-    const HTTP_RESPONSE_BODY_FORMAT_STRING = 'STRING';
-    const HTTP_RESPONSE_BODY_FORMAT_PACK = 'PACK';
 
     /**
      * @var string|null
@@ -27,22 +26,31 @@ class HttpResponseFormat extends FormatBase {
     public $headers = null;
 
     /**
-     * @var string|null
+     * @var StreamInterface|string|null
      */
     public $body = null;
 
     /**
-     * @var string
+     * HttpResponseFormat constructor.
+     * @param array|null $params {
+     *   @type string|null $code
+     *   @type string|null $reason
+     *   @type array|null $headers
+     *   @type StreamInterface|string|null $body
+     * }
      */
-    public $body_format = self::HTTP_RESPONSE_BODY_FORMAT_STRING;
-
-    public function __construct( $params = null ) {
+    public function __construct( array $params = null ) {
 
         $this->code = $params['code'] ?? null;
         $this->reason = $params['reason'] ?? null;
         $this->headers = $params['headers'] ?? null;
-        $this->body = $params['body'] ?? null;
-        $this->body_format = $params['body_format'] ?? self::HTTP_RESPONSE_BODY_FORMAT_STRING;
+
+        $body = $params['body'] ?? null;
+        if( is_null($body) || gettype( $body ) === 'string' ) {
+            $this->body = $body;
+        } else {
+            $this->body = Utils::streamFor( $body );
+        }
 
     }
 
@@ -63,7 +71,7 @@ class HttpResponseFormat extends FormatBase {
             $obj[ 'headers' ] = $this->headers;
         }
         if( !is_null( $this->body ) ) {
-            if ($this->body_format === self::HTTP_RESPONSE_BODY_FORMAT_STRING) {
+            if( !($this->body instanceof StreamInterface ) ) {
                 $obj[ 'body' ] = $this->body;
             } else {
                 $obj[ 'body-bin' ] = base64_encode( $this->body );

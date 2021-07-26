@@ -5,7 +5,9 @@ namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Data\Http\HttpResponseFormat;
+use Fanout\Grip\Tests\Utils\TestStreamData;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
 
 class HttpResponseFormatTest extends TestCase {
 
@@ -25,7 +27,7 @@ class HttpResponseFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldConstructParams() {
+    function shouldConstructString() {
 
         $format = new HttpResponseFormat([
             'code' => 'code',
@@ -34,14 +36,52 @@ class HttpResponseFormatTest extends TestCase {
                 'foo' => 'bar',
             ],
             'body' => 'body',
-            'body_format' => HttpResponseFormat::HTTP_RESPONSE_BODY_FORMAT_PACK,
         ]);
         $this->assertEquals( 'code', $format->code );
         $this->assertEquals( 'reason', $format->reason );
         $this->assertEquals( [ 'foo' => 'bar' ], $format->headers );
         $this->assertEquals( 'body', $format->body );
-        $this->assertEquals( HttpResponseFormat::HTTP_RESPONSE_BODY_FORMAT_PACK, $format->body_format );
 
+    }
+
+    /**
+     * @test
+     */
+    function shouldConstructStream() {
+
+        $format = new HttpResponseFormat([
+            'code' => 'code',
+            'reason' => 'reason',
+            'headers' => [
+                'foo' => 'bar',
+            ],
+            'body' => TestStreamData::$sample_stream,
+        ]);
+        $this->assertEquals( 'code', $format->code );
+        $this->assertEquals( 'reason', $format->reason );
+        $this->assertEquals( [ 'foo' => 'bar' ], $format->headers );
+        $this->assertEquals( TestStreamData::$sample_stream, $format->body );
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldConstructConverted() {
+        $format = new HttpResponseFormat([
+            'code' => 'code',
+            'reason' => 'reason',
+            'headers' => [
+                'foo' => 'bar',
+            ],
+            'body' => TestStreamData::get_sample_iterator(),
+        ]);
+        $this->assertEquals( 'code', $format->code );
+        $this->assertEquals( 'reason', $format->reason );
+        $this->assertEquals( [ 'foo' => 'bar' ], $format->headers );
+
+        $this->assertInstanceOf( StreamInterface::class, $format->body );
+        $this->assertEquals( TestStreamData::$sample_iterator_values_to_string, $format->body->getContents() );
     }
 
     /**
@@ -57,7 +97,7 @@ class HttpResponseFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportStringBody() {
+    function shouldExportString() {
 
         $format = new HttpResponseFormat([
             'body' => 'body',
@@ -74,19 +114,34 @@ class HttpResponseFormatTest extends TestCase {
     /**
      * @test
      */
-    function shouldExportPackedBody() {
+    function shouldExportStream() {
 
-        $data = pack( 'C*', 0x41, 0x42, 0x43 );
         $format = new HttpResponseFormat([
-            'body' => $data,
-            'body_format' => HttpResponseFormat::HTTP_RESPONSE_BODY_FORMAT_PACK,
+            'body' => TestStreamData::$sample_stream,
         ]);
 
         $export = $format->export();
 
         $this->assertIsArray( $export );
         $this->assertArrayNotHasKey( 'body', $export );
-        $this->assertEquals( [ 'body-bin' => 'QUJD' ], $export );
+        $this->assertEquals( [ 'body-bin' => TestStreamData::$sample_stream_value_to_base64 ], $export );
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldExportConverted() {
+
+        $format = new HttpResponseFormat([
+            'body' => TestStreamData::get_sample_iterator(),
+        ]);
+
+        $export = $format->export();
+
+        $this->assertIsArray( $export );
+        $this->assertArrayNotHasKey( 'body', $export );
+        $this->assertEquals( [ 'body-bin' => TestStreamData::$sample_iterator_values_to_base64 ], $export );
 
     }
 
@@ -101,8 +156,6 @@ class HttpResponseFormatTest extends TestCase {
             'headers' => [
                 'foo' => 'bar',
             ],
-            'body' => pack( 'C*', 0x41, 0x42, 0x43 ),
-            'body_format' => HttpResponseFormat::HTTP_RESPONSE_BODY_FORMAT_PACK,
         ]);
 
         $export = $format->export();
@@ -113,7 +166,6 @@ class HttpResponseFormatTest extends TestCase {
             'headers' => [
                 'foo' => 'bar',
             ],
-            'body-bin' => 'QUJD',
         ], $export);
 
     }
