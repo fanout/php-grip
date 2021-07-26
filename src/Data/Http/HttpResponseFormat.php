@@ -11,12 +11,30 @@ class HttpResponseFormat extends FormatBase {
     const HTTP_RESPONSE_BODY_FORMAT_STRING = 'STRING';
     const HTTP_RESPONSE_BODY_FORMAT_PACK = 'PACK';
 
-    public ?string $code = null;
-    public ?string $reason = null;
-    public ?array $headers = null;
+    /**
+     * @var string|null
+     */
+    public $code = null;
 
-    public ?string $body = null;
-    public string $body_format = self::HTTP_RESPONSE_BODY_FORMAT_STRING;
+    /**
+     * @var string|null
+     */
+    public $reason = null;
+
+    /**
+     * @var array|null
+     */
+    public $headers = null;
+
+    /**
+     * @var string|null
+     */
+    public $body = null;
+
+    /**
+     * @var string
+     */
+    public $body_format = self::HTTP_RESPONSE_BODY_FORMAT_STRING;
 
     public function __construct( $params = null ) {
 

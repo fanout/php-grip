@@ -10,7 +10,10 @@ use Fanout\Grip\Errors\DuplicateFormatNameError;
 use PHPUnit\Framework\TestCase;
 
 class TestFormat1 extends FormatBase {
-    public string $content;
+    /**
+     * @var string
+     */
+    public $content;
 
     public function __construct( string $content ) {
         $this->content = $content;
@@ -28,7 +31,10 @@ class TestFormat1 extends FormatBase {
 }
 
 class TestFormat2 extends FormatBase {
-    public string $content;
+    /**
+     * @var string
+     */
+    public $content;
 
     public function __construct( string $content ) {
         $this->content = $content;
@@ -47,8 +53,15 @@ class TestFormat2 extends FormatBase {
 
 class ItemTest extends TestCase {
 
-    public FormatBase $format1;
-    public FormatBase $format2;
+    /**
+     * @var FormatBase
+     */
+    public $format1;
+
+    /**
+     * @var FormatBase
+     */
+    public $format2;
 
     function setUp(): void {
 

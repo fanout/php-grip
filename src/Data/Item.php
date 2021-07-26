@@ -11,10 +11,17 @@ class Item {
     /**
      * @var FormatBase[]
      */
-    public array $formats;
+    public $formats;
 
-    public ?string $id;
-    public ?string $prev_id;
+    /**
+     * @var string|null
+     */
+    public $id;
+
+    /**
+     * @var string|null
+     */
+    public $prev_id;
 
     /**
      * Item constructor.
@@ -32,7 +39,7 @@ class Item {
         $this->prev_id = $prev_id;
     }
 
-    function export() {
+    function export(): array {
         $obj = [
             'formats' => [],
         ];

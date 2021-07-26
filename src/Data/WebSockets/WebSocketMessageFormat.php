@@ -12,10 +12,25 @@ class WebSocketMessageFormat extends FormatBase {
     const WEBSOCKET_MESSAGE_BODY_FORMAT_STRING = 'STRING';
     const WEBSOCKET_MESSAGE_BODY_FORMAT_PACK = 'PACK';
 
-    public ?string $content;
-    public string $content_format;
-    public bool $close;
-    public ?int $code;
+    /**
+     * @var string|null
+     */
+    public $content;
+
+    /**
+     * @var string
+     */
+    public $content_format;
+
+    /**
+     * @var bool
+     */
+    public $close;
+
+    /**
+     * @var int|null
+     */
+    public  $code;
 
     public function __construct( ?string $content, string $content_format = self::WEBSOCKET_MESSAGE_BODY_FORMAT_STRING, $close = false, int $code = null ) {
         if( $close ) {

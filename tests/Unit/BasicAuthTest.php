@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Fanout\Grip\Tests\Unit\Auth;
+namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Auth\BasicAuth;

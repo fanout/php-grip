@@ -10,7 +10,6 @@ use Fanout\Grip\Data\Item;
 use Fanout\Grip\Errors\PublishError;
 use Fanout\Grip\Utils\StringUtil;
 use GuzzleHttp\Client;
-use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -22,10 +21,20 @@ use Throwable;
 // instance and passes that to the publish method.
 class PublisherClient {
 
-    public string $uri;
-    public ?IAuth $auth;
+    /**
+     * @var string
+     */
+    public $uri;
 
-    public static ?Client $guzzle_client;
+    /**
+     * @var IAuth|null
+     */
+    public $auth;
+
+    /**
+     * @var Client|null
+     */
+    public static $guzzle_client;
 
     public function __construct( string $uri ) {
         if (StringUtil::string_ends_with( $uri, '/' )) {

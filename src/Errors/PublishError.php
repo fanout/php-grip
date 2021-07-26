@@ -8,7 +8,10 @@ use Error;
 
 class PublishError extends Error {
 
-    public ?array $data;
+    /**
+     * @var array|null
+     */
+    public $data;
 
     public function __construct($message = "", $data = null) {
         parent::__construct($message);

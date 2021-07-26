@@ -12,8 +12,15 @@ use Psr\Http\Message\RequestInterface;
 
 class GuzzleMock {
 
-    public array $transactions;
-    public Client $client;
+    /**
+     * @var array
+     */
+    public $transactions;
+
+    /**
+     * @var Client
+     */
+    public $client;
 
     public function __construct( $queue ) {
 

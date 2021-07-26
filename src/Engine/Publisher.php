@@ -16,7 +16,7 @@ use GuzzleHttp\Promise\Utils;
 class Publisher {
 
     /** @var PublisherClient[]  */
-    public array $clients;
+    public $clients;
 
     /**
      * Publisher constructor.

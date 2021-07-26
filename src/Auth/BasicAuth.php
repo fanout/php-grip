@@ -6,8 +6,11 @@ namespace Fanout\Grip\Auth;
 
 class BasicAuth implements IAuth {
 
-    public string $user;
-    public string $pass;
+    /** @var string */
+    public $user;
+
+    /** @var string */
+    public $pass;
 
     public function __construct( string $user, string $pass ) {
         $this->user = $user;

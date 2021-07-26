@@ -6,8 +6,9 @@ namespace Fanout\Grip\Tests\Unit;
 
 use Fanout\Grip\Errors\CStringEncodeInvalidInputError;
 use Fanout\Grip\Utils\StringUtil;
+use PHPUnit\Framework\TestCase;
 
-class StringUtilTest extends \PHPUnit\Framework\TestCase {
+class StringUtilTest extends TestCase {
 
     /**
      * @test

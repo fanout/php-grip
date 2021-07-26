@@ -8,16 +8,27 @@ use Firebase\JWT\JWT;
 
 class JwtAuth implements IAuth {
 
-    public ?array $claim;
-    public ?string $key;
-    public ?string $token;
+    /**
+     * @var array|null
+     */
+    public $claim;
+
+    /**
+     * @var string|null
+     */
+    public $key;
+
+    /**
+     * @var string|null
+     */
+    public $token;
 
     /**
      * JwtAuth constructor.
      * @param array|string $claim_or_token
      * @param string|null $key
      */
-    public function __construct( mixed $claim_or_token, string $key = null ) {
+    public function __construct( $claim_or_token, string $key = null ) {
         if (is_null($key)) {
             $this->claim = null;
             $this->key = null;

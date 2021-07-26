@@ -22,7 +22,10 @@ use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 
 class TestFormat extends FormatBase {
-    public string $content;
+    /**
+     * @var string
+     */
+    public $content;
 
     public function __construct( string $content ) {
         $this->content = $content;

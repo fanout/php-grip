@@ -32,7 +32,7 @@ class StringUtil {
 
     }
 
-    static function escape_quotes( $input ) {
+    static function escape_quotes( $input ): string {
 
         $output = '';
         foreach( str_split( $input ) as $ch ) {

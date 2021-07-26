@@ -11,9 +11,20 @@ class HttpStreamFormat extends FormatBase {
     const HTTP_RESPONSE_BODY_FORMAT_STRING = 'STRING';
     const HTTP_RESPONSE_BODY_FORMAT_PACK = 'PACK';
 
-    public ?string $content;
-    public ?string $content_format;
-    public bool $close;
+    /**
+     * @var string|null
+     */
+    public $content;
+
+    /**
+     * @var string|null
+     */
+    public $content_format;
+
+    /**
+     * @var bool
+     */
+    public $close;
 
     public function __construct( ?string $content, ?string $content_format = self::HTTP_RESPONSE_BODY_FORMAT_STRING, $close = false ) {
         $this->content = $content;

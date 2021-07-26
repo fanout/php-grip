@@ -5,7 +5,7 @@ namespace Fanout\Grip\Utils;
 
 
 class ArrayUtil {
-    static function is_numeric_array( $data ) {
+    static function is_numeric_array( $data ): bool {
         if ( ! is_array( $data ) ) {
             return false;
         }

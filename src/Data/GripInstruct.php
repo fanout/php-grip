@@ -13,20 +13,52 @@ class GripInstruct {
     const KEEPALIVE_DATA_FORMAT_PACK = 'PACK';
 
     /** @var Channel[] */
-    public array $channels = [];
-    public ?int $status = null;
+    public $channels = [];
 
-    public ?string $hold = null;
-    public int $timeout = 0;
+    /**
+     * @var int|null
+     */
+    public $status = null;
 
-    public ?string $keep_alive_data = null;
-    public string $keep_alive_data_format = self::KEEPALIVE_DATA_FORMAT_STRING;
-    public int $keep_alive_timeout = 0;
+    /**
+     * @var string|null
+     */
+    public $hold = null;
 
-    public ?string $next_link_value = null;
-    public int $next_link_timeout = 0;
+    /**
+     * @var int
+     */
+    public $timeout = 0;
 
-    public array $meta = [];
+    /**
+     * @var string|null
+     */
+    public $keep_alive_data = null;
+
+    /**
+     * @var string
+     */
+    public $keep_alive_data_format = self::KEEPALIVE_DATA_FORMAT_STRING;
+
+    /**
+     * @var int
+     */
+    public $keep_alive_timeout = 0;
+
+    /**
+     * @var string|null
+     */
+    public $next_link_value = null;
+
+    /**
+     * @var int
+     */
+    public $next_link_timeout = 0;
+
+    /**
+     * @var array
+     */
+    public $meta = [];
 
     public function __construct( $channels = null ) {
 
@@ -77,7 +109,7 @@ class GripInstruct {
         $this->next_link_timeout = $timeout_secs;
     }
 
-    private function build_grip_channel_header_value() {
+    private function build_grip_channel_header_value(): string {
         $segments = [];
 
         foreach( $this->channels as $channel ) {
@@ -92,7 +124,7 @@ class GripInstruct {
         return join(', ', $segments );
     }
 
-    private function build_keep_alive_header() {
+    private function build_keep_alive_header(): string {
 
         $output = null;
         if( $this->keep_alive_data_format === self::KEEPALIVE_DATA_FORMAT_STRING ) {
@@ -129,7 +161,7 @@ class GripInstruct {
 
     }
 
-    private function build_link_header() {
+    private function build_link_header(): string {
         $output = "<{$this->next_link_value}>; rel=next";
         if( $this->next_link_timeout > 0 ) {
             $output .= '; timeout=' . strval( $this->next_link_timeout );

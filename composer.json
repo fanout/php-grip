@@ -23,7 +23,9 @@
     "phpunit/phpunit": "^9.5"
   },
   "require": {
+    "php": ">=7.2",
     "firebase/php-jwt": "^5.4",
-    "guzzlehttp/guzzle": "^7.0"
+    "guzzlehttp/guzzle": "^7.0.1",
+    "ext-json": "*"
   }
 }

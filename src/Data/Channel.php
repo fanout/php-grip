@@ -6,15 +6,22 @@ namespace Fanout\Grip\Data;
 
 class Channel {
 
-    public string $name;
-    public ?string $prev_id;
+    /**
+     * @var string
+     */
+    public $name;
+
+    /**
+     * @var string|null
+     */
+    public $prev_id;
 
     public function __construct( string $name, string $prev_id = null ) {
         $this->name = $name;
         $this->prev_id = $prev_id;
     }
 
-    public function export() {
+    public function export(): array {
         $export = [
             'name' => $this->name,
         ];
