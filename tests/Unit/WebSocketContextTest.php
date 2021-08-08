@@ -284,6 +284,28 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
+    function shouldCloseWithDefaultCode() {
+        $ws = new WebSocketContext('conn-1', [], []);
+        $this->assertFalse( $ws->is_opening() );
+        $this->assertFalse( $ws->can_recv() );
+        $this->assertFalse( $ws->is_closed() );
+
+        $out_events = $ws->get_outgoing_events();
+        $this->assertCount( 0, $out_events );
+
+        $ws->close();
+        $this->assertTrue( $ws->is_closed() );
+
+        $out_events = $ws->get_outgoing_events();
+        $this->assertCount( 1, $out_events );
+
+        $this->assertSame( 'CLOSE', $out_events[0]->get_type() );
+        $this->assertSame( 0, unpack( 'n', $out_events[0]->get_content() )[1] );
+    }
+
+    /**
+     * @test
+     */
     function shouldDisconnect() {
         $ws = new WebSocketContext('conn-1', [], []);
 

@@ -89,7 +89,7 @@ class WebSocketContext {
         $this->out_events[] = new WebSocketEvent('DISCONNECT');
     }
 
-    public function close( $close_code ) {
+    public function close( $close_code = 0 ) {
         $this->closed = true;
         $this->out_close_code = $close_code;
     }
