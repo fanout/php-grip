@@ -15,7 +15,7 @@ Run Pushpin
 % pushpin
 ```
 
-Start the example index file
+In another Terminal window, start the example index file
 ```
 % php -S 0.0.0.0:3000 -t examples/http-stream
 ```
@@ -42,7 +42,7 @@ Connection: Transfer-Encoding
 
 Now, in a new Terminal window:
 ```
-% php examples/http-stream/publish.php test Message
+% php examples/http-stream/publish.php Message
 Publish URI: http://localhost:5561/
 Channel: test
 Message: Message
