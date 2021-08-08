@@ -5,16 +5,19 @@ namespace Fanout\Grip\Data\WebSockets;
 
 
 use Error;
+use Fanout\Grip\Errors\ConnectionIdMissingError;
+use Fanout\Grip\Errors\WebSocketDecodeEventException;
 use GuzzleHttp\Psr7\AppendStream;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamInterface;
+use Throwable;
 
 class WebSocketContext {
 
     const CONTENT_TYPE_WEBSOCKET_EVENTS = 'application/websocket-events';
 
     public $id;
-    private $prefix;
+    public $prefix;
 
     public $meta;
     private $meta_prev;
@@ -232,12 +235,22 @@ class WebSocketContext {
             $headers['Sec-WebSocket-Extensions'] = 'grip';
         }
 
-        $all_meta_keys = array_merge([], array_keys($this->meta), array_keys($this->meta_prev));
+        $meta_lower_keys = [];
+        foreach( $this->meta as $key => $value ) {
+            $meta_lower_keys[ strtolower( $key ) ] = $value;
+        }
+
+        $meta_prev_lower_keys = [];
+        foreach( $this->meta_prev as $key => $value ) {
+            $meta_prev_lower_keys[ strtolower( $key ) ] = $value;
+        }
+
+        $all_meta_keys = array_merge(array_keys($meta_lower_keys), array_keys($meta_prev_lower_keys));
         $all_meta_keys = array_unique( $all_meta_keys );
 
         foreach( $all_meta_keys as $key ) {
-            $new_value = ($this->meta[ $key ] ?? '');
-            $prev_value = ($this->meta_prev[ $key ] ?? '');
+            $new_value = ($meta_lower_keys[ $key ] ?? '');
+            $prev_value = ($meta_prev_lower_keys[ $key ] ?? '');
             if( $new_value !== $prev_value ) {
                 $headers[ 'Set-Meta-' . $key ] = strval( $new_value );
             }
@@ -301,5 +314,37 @@ class WebSocketContext {
         }
 
         return false;
+    }
+
+    public static $req_input = null;
+    public static function set_input( $value ) {
+        self::$req_input = $value;
+    }
+
+    public static function from_req( $prefix = '' ): WebSocketContext {
+        $connection_id = $_SERVER['HTTP_CONNECTION_ID'] ?? null;
+        if( $connection_id === null ) {
+            throw new ConnectionIdMissingError();
+        }
+
+        $input = self::$req_input ?? fopen('php://input', 'r');
+        try {
+            $events = WebSocketEvent::decode_events( Utils::streamFor( $input ) );
+        } catch( Throwable $ex ) {
+            throw new WebSocketDecodeEventException();
+        }
+
+        $meta = [];
+        foreach( $_SERVER as $key => $value ) {
+            $key = strtolower( $key );
+            if( substr( $key, 0, 10 ) !== 'http_meta_' ) {
+                continue;
+            }
+            $key = substr( $key, 10 );
+            $key = str_replace( '_', '-', $key );
+            $meta[ $key ] = $value;
+        }
+
+        return new WebSocketContext( $connection_id, $meta, $events, $prefix );
     }
 }

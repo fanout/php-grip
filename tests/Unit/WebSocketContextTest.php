@@ -7,6 +7,8 @@ namespace Fanout\Grip\Tests\Unit;
 use Error;
 use Fanout\Grip\Data\WebSockets\WebSocketContext;
 use Fanout\Grip\Data\WebSockets\WebSocketEvent;
+use Fanout\Grip\Errors\ConnectionIdMissingError;
+use Fanout\Grip\Errors\WebSocketDecodeEventException;
 use Fanout\Grip\Tests\Utils\TestStreamData;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
@@ -422,5 +424,57 @@ class WebSocketContextTest extends TestCase {
         $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
 
         $this->assertFalse( WebSocketContext::is_ws_over_http() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldWebsocketContextFromReqFailWhenNoConnectionId() {
+        $this->expectException( ConnectionIdMissingError::class );
+        WebSocketContext::from_req();
+    }
+
+    /**
+     * @test
+     */
+    function shouldWebsocketContextFromReqFailWhenBodyDecodeFails() {
+        $this->expectException( WebSocketDecodeEventException::class );
+        $_SERVER['HTTP_CONNECTION_ID'] = 'cid';
+        WebSocketContext::set_input( "TEXT 5\r\n" );
+        WebSocketContext::from_req();
+    }
+
+    /**
+     * @test
+     */
+    function shouldWebsocketContextFromReq() {
+        $_SERVER['HTTP_CONNECTION_ID'] = 'cid';
+        $body = "OPEN\r\nTEXT 5\r\nHello\r\nTEXT 0\r\n\r\nCLOSE\r\nTEXT\r\nCLOSE\r\n";
+        WebSocketContext::set_input( $body );
+
+        $_SERVER['HTTP_META_FOO'] = 'hi';
+        $_SERVER['HTTP_META_BAR'] = 'ho';
+        $_SERVER['HTTP_META_BAZ_A'] = 'hello';
+
+        $ws_context = WebSocketContext::from_req( 'prefix' );
+        $this->assertSame( 'cid', $ws_context->id );
+        $this->assertSame( 'prefix', $ws_context->prefix );
+
+        $this->assertEquals([
+            'foo' => 'hi',
+            'bar' => 'ho',
+            'baz-a' => 'hello',
+        ], $ws_context->meta);
+
+        $this->assertTrue( $ws_context->is_opening() );
+        $ws_context->accept();
+
+        $this->assertTrue( $ws_context->can_recv() );
+        $event = $ws_context->recv();
+        $this->assertSame( 'Hello', $event );
+        $event = $ws_context->recv();
+        $this->assertSame( '', $event );
+        $event = $ws_context->recv();
+        $this->assertSame( null, $event );
     }
 }
