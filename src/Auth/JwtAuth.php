@@ -5,6 +5,7 @@ namespace Fanout\Grip\Auth;
 
 
 use Firebase\JWT\JWT;
+use Throwable;
 
 class JwtAuth implements IAuth {
 
@@ -56,5 +57,15 @@ class JwtAuth implements IAuth {
 
         return "Bearer " . $token;
 
+    }
+
+    static function validate_signature( $token, $key ): bool {
+        try {
+            $claim = JWT::decode( $token, $key, [ 'HS256' ] );
+        } catch( Throwable $ex ) {
+            return false;
+        }
+
+        return $claim !== null;
     }
 }

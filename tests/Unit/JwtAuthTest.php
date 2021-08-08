@@ -59,4 +59,37 @@ class JwtAuthTest extends TestCase {
         $this->assertSame( 'Bearer token', $header );
 
     }
+
+    /**
+     * @test
+     */
+    public function shouldVerifyJwtToken() {
+        $token = JWT::encode([
+            'claim' => 'hello',
+            'exp' => time() + 60 * 60 // 1 hour
+        ], 'key==' );
+        $this->assertTrue( JwtAuth::validate_signature($token, 'key==') );
+    }
+
+    /**
+     * @test
+     */
+    public function shouldFailVerifyExpiredJwtToken() {
+        $token = JWT::encode([
+            'claim' => 'hello',
+            'exp' => time() - 60 * 60 // 1 hour
+        ], 'key==' );
+        $this->assertFalse( JwtAuth::validate_signature($token, 'key==') );
+    }
+
+    /**
+     * @test
+     */
+    public function shouldFailVerifyJwtTokenKeyMismatch() {
+        $token = JWT::encode([
+            'claim' => 'hello',
+            'exp' => time() + 60 * 60 // 1 hour
+        ], 'key==' );
+        $this->assertFalse( JwtAuth::validate_signature($token, 'key===') );
+    }
 }
