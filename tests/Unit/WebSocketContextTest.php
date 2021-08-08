@@ -373,4 +373,54 @@ class WebSocketContextTest extends TestCase {
         ], $headers);
     }
 
+    /**
+     * @test
+     */
+    function shouldDetectIsWsOverHttpWithContentType() {
+        $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/websocket-events';
+        $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldDetectIsWsOverHttpWithAccept() {
+        $_SERVER[ 'HTTP_ACCEPT' ] = 'application/websocket-events';
+        $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldDetectIsWsOverHttpWithMultipleAccepts() {
+        $_SERVER[ 'HTTP_ACCEPT' ] = 'application/websocket-events, application/json';
+        $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldFailDetectIsWsOverHttpWhenNotPost() {
+        $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/websocket-events';
+        $_SERVER[ 'REQUEST_METHOD' ] = 'GET';
+
+        $this->assertFalse( WebSocketContext::is_ws_over_http() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldFailDetectIsWsOverHttpWhenNotContentTypeNorAccept() {
+        $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/json';
+        $_SERVER[ 'HTTP_ACCEPT' ] = 'application/json';
+        $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
+
+        $this->assertFalse( WebSocketContext::is_ws_over_http() );
+    }
 }

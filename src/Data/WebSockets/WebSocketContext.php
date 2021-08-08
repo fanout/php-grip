@@ -11,6 +11,8 @@ use Psr\Http\Message\StreamInterface;
 
 class WebSocketContext {
 
+    const CONTENT_TYPE_WEBSOCKET_EVENTS = 'application/websocket-events';
+
     public $id;
     private $prefix;
 
@@ -270,5 +272,34 @@ class WebSocketContext {
     static function create_web_socket_control_message( $type, $args = [] ) {
         $out = array_merge([], $args, [ 'type' => $type ]);
         return json_encode( $out );
+    }
+
+    public static function is_ws_over_http(): bool {
+        if( ($_SERVER[ 'REQUEST_METHOD' ] ?? null) !== 'POST' ) {
+            return false;
+        }
+
+        $content_type = $_SERVER[ 'HTTP_CONTENT_TYPE' ] ?? null;
+        if( $content_type !== null ) {
+            $semi_pos = strpos( $content_type, ';' );
+            if( $semi_pos !== false ) {
+                $content_type = substr($content_type, 0, $semi_pos);
+            }
+            if( $content_type === self::CONTENT_TYPE_WEBSOCKET_EVENTS ) {
+                return true;
+            }
+        }
+
+        $accept = $_SERVER[ 'HTTP_ACCEPT' ] ?? null;
+        if( $accept !== null ) {
+            $accepts = explode( ',', $accept );
+            $accepts = array_map( 'trim', $accepts );
+            $accepts = array_filter( $accepts );
+            if( in_array( self::CONTENT_TYPE_WEBSOCKET_EVENTS, $accepts ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
