@@ -8,6 +8,7 @@ use Fanout\Grip\Data\FormatBase;
 use Fanout\Grip\Data\Http\HttpResponseFormat;
 use Fanout\Grip\Data\Http\HttpStreamFormat;
 use Fanout\Grip\Data\Item;
+use Fanout\Grip\Data\WebSockets\WebSocketMessageFormat;
 use Fanout\Grip\Utils\ArrayUtil;
 use Fanout\Grip\Utils\GripUriUtil;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -95,4 +96,15 @@ class Publisher {
         return $this->publish_formats( $channel, $data, $id, $prev_id );
     }
 
+    /**
+     * @param string $channel
+     * @param WebSocketMessageFormat|string $data
+     * @param string|null $id
+     * @param string|null $prev_id
+     * @return PromiseInterface
+     */
+    public function publish_websocket_message(string $channel, $data, ?string $id = null, ?string $prev_id = null ):  PromiseInterface {
+        $data = $data instanceof WebSocketMessageFormat ? $data : new WebSocketMessageFormat( $data );
+        return $this->publish_formats( $channel, $data, $id, $prev_id );
+    }
 }

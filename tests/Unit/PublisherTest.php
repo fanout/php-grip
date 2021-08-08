@@ -8,6 +8,7 @@ use Fanout\Grip\Data\FormatBase;
 use Fanout\Grip\Data\Http\HttpResponseFormat;
 use Fanout\Grip\Data\Http\HttpStreamFormat;
 use Fanout\Grip\Data\Item;
+use Fanout\Grip\Data\WebSockets\WebSocketMessageFormat;
 use Fanout\Grip\Engine\Publisher;
 use Fanout\Grip\Engine\PublisherClient;
 use GuzzleHttp\Promise\FulfilledPromise;
@@ -379,6 +380,38 @@ class PublisherTest extends TestCase {
         $publisher->add_client( $mock_object );
 
         $promise = $publisher->publish_http_stream( 'chan', 'data' );
+
+        $promise->wait();
+
+    }
+
+    /**
+     * @test
+     */
+    function shouldPublishWebSocketMessage() {
+
+        $mock_object = $this->getMockBuilder( PublisherClient::class )
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mock_object->expects($this->once())
+            ->method( 'publish' )
+            ->willReturn(new FulfilledPromise(true))
+            ->with( 'chan', $this->callback(function($item) {
+                $this->assertInstanceOf(Item::class, $item);
+                /** @var Item $item */
+                $this->assertCount( 1, $item->formats );
+                $this->assertInstanceOf(WebSocketMessageFormat::class, $item->formats[0]);
+                $format = $item->formats[0];
+                /** @var WebSocketMessageFormat $format */
+                $this->assertEquals('data', $format->content);
+                return true;
+            }) );
+
+        $publisher = new Publisher();
+        $publisher->add_client( $mock_object );
+
+        $promise = $publisher->publish_websocket_message( 'chan', 'data' );
 
         $promise->wait();
 
