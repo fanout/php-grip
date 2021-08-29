@@ -149,6 +149,16 @@ class GripInstructTest extends TestCase {
     /**
      * @test
      */
+    public function shouldBuildGripHeadersNoChannels() {
+
+        $grip_instruct = new GripInstruct();
+        $this->assertSame([], $grip_instruct->build_headers());
+
+    }
+
+    /**
+     * @test
+     */
     public function shouldBuildGripHeadersSimple() {
 
         $grip_instruct = new GripInstruct( 'foo' );
@@ -278,7 +288,7 @@ class GripInstructTest extends TestCase {
     /**
      * @test
      */
-    public function shouldBuildGripHeadersLongPollSetMeta() {
+    public function shouldBuildGripHeadersLongPollAssignMeta() {
 
         $grip_instruct = new GripInstruct( 'foo' );
         $grip_instruct->set_hold_long_poll( 100 );
@@ -287,6 +297,27 @@ class GripInstructTest extends TestCase {
             'bar' => 'baz',
             'hoge' => 'piyo',
         ];
+        $this->assertSame([
+            'Grip-Channel' => 'foo',
+            'Grip-Hold' => 'response',
+            'Grip-Timeout' => '100',
+            'Grip-Set-Meta' => 'bar="baz", hoge="piyo"',
+        ], $grip_instruct->build_headers());
+
+    }
+
+    /**
+     * @test
+     */
+    public function shouldBuildGripHeadersLongPollSetMeta() {
+
+        $grip_instruct = new GripInstruct( 'foo' );
+        $grip_instruct->set_hold_long_poll( 100 );
+        // Meta is set directly
+        $grip_instruct->set_meta([
+            'bar' => 'baz',
+            'hoge' => 'piyo',
+        ]);
         $this->assertSame([
             'Grip-Channel' => 'foo',
             'Grip-Hold' => 'response',

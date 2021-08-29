@@ -51,6 +51,7 @@ class GripInstruct {
     public $next_link_timeout = 0;
 
     /**
+     * Can be set directly, or replaced using set_meta
      * @var array
      */
     public $meta = [];
@@ -169,7 +170,9 @@ class GripInstruct {
 
     public function build_headers(): array {
         $headers = [];
-        $headers[ 'Grip-Channel' ] = $this->build_grip_channel_header_value();
+        if( !empty( $this->channels ) ) {
+            $headers[ 'Grip-Channel' ] = $this->build_grip_channel_header_value();
+        }
         if( !is_null( $this->status ) ) {
             $headers[ 'Grip-Status' ] = strval( $this->status ); // Convert to string
         }
@@ -189,6 +192,10 @@ class GripInstruct {
             $headers[ 'Grip-Link' ] = $this->build_link_header();
         }
         return $headers;
+    }
+
+    public function set_meta( array $new_meta ) {
+        $this->meta = $new_meta;
     }
 
 }
