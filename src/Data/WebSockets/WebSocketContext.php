@@ -6,7 +6,7 @@ namespace Fanout\Grip\Data\WebSockets;
 
 use Error;
 use Fanout\Grip\Errors\ConnectionIdMissingError;
-use Fanout\Grip\Errors\WebSocketDecodeEventException;
+use Fanout\Grip\Errors\WebSocketDecodeEventError;
 use GuzzleHttp\Psr7\AppendStream;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\StreamInterface;
@@ -331,7 +331,7 @@ class WebSocketContext {
         try {
             $events = WebSocketEvent::decode_events( Utils::streamFor( $input ) );
         } catch( Throwable $ex ) {
-            throw new WebSocketDecodeEventException();
+            throw new WebSocketDecodeEventError();
         }
 
         $meta = [];

@@ -8,7 +8,7 @@ use Error;
 use Fanout\Grip\Data\WebSockets\WebSocketContext;
 use Fanout\Grip\Data\WebSockets\WebSocketEvent;
 use Fanout\Grip\Errors\ConnectionIdMissingError;
-use Fanout\Grip\Errors\WebSocketDecodeEventException;
+use Fanout\Grip\Errors\WebSocketDecodeEventError;
 use Fanout\Grip\Tests\Utils\TestStreamData;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
@@ -438,7 +438,7 @@ class WebSocketContextTest extends TestCase {
      * @test
      */
     function shouldWebsocketContextFromReqFailWhenBodyDecodeFails() {
-        $this->expectException( WebSocketDecodeEventException::class );
+        $this->expectException( WebSocketDecodeEventError::class );
         $_SERVER['HTTP_CONNECTION_ID'] = 'cid';
         WebSocketContext::set_input( "TEXT 5\r\n" );
         WebSocketContext::from_req();
