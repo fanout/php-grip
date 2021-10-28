@@ -8,7 +8,9 @@ use Error;
 use Fanout\Grip\Errors\ConnectionIdMissingError;
 use Fanout\Grip\Errors\WebSocketDecodeEventError;
 use GuzzleHttp\Psr7\AppendStream;
+use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Utils;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
 
@@ -30,6 +32,8 @@ class WebSocketContext {
     private $in_events;
     private $read_index;
     private $out_events;
+
+    static private $_request;
 
     public function __construct( $id, $meta, $in_events, $prefix = ''  ) {
 
@@ -287,62 +291,86 @@ class WebSocketContext {
         return json_encode( $out );
     }
 
-    public static function is_ws_over_http(): bool {
-        if( ($_SERVER[ 'REQUEST_METHOD' ] ?? null) !== 'POST' ) {
+    public static function get_static_request(): RequestInterface {
+        if( static::$_request == null ) {
+            static::$_request = ServerRequest::fromGlobals();
+        }
+        return static::$_request;
+    }
+
+    public static function clear_static_request() {
+        static::$_request = null;
+    }
+
+    public static function is_ws_over_http( RequestInterface $request = null ): bool {
+        if( empty( $request ) ) {
+            $request = static::get_static_request();
+        }
+
+        if( $request->getMethod() !== 'POST' ) {
             return false;
         }
 
-        $content_type = $_SERVER[ 'HTTP_CONTENT_TYPE' ] ?? null;
-        if( $content_type !== null ) {
-            $semi_pos = strpos( $content_type, ';' );
-            if( $semi_pos !== false ) {
-                $content_type = substr($content_type, 0, $semi_pos);
-            }
-            if( $content_type === self::CONTENT_TYPE_WEBSOCKET_EVENTS ) {
-                return true;
+        $content_type_headers = $request->getHeader( 'Content-Type' );
+        foreach( $content_type_headers as $content_type_header ) {
+            $content_types = explode( ',', $content_type_header );
+            foreach( $content_types as $content_type ) {
+                $semi_pos = strpos( $content_type, ';' );
+                if( $semi_pos !== false ) {
+                    $content_type = substr($content_type, 0, $semi_pos);
+                }
+                $content_type = trim( $content_type );
+                if( empty( $content_type ) ) {
+                    continue;
+                }
+                if( $content_type === self::CONTENT_TYPE_WEBSOCKET_EVENTS ) {
+                    return true;
+                }
             }
         }
 
-        $accept = $_SERVER[ 'HTTP_ACCEPT' ] ?? null;
-        if( $accept !== null ) {
-            $accepts = explode( ',', $accept );
-            $accepts = array_map( 'trim', $accepts );
-            $accepts = array_filter( $accepts );
-            if( in_array( self::CONTENT_TYPE_WEBSOCKET_EVENTS, $accepts ) ) {
-                return true;
+        $accept_headers = $request->getHeader( 'Accept' );
+        foreach( $accept_headers as $accept_header ) {
+            $accepts = explode( ',', $accept_header );
+            foreach( $accepts as $accept ) {
+                $accept = trim( $accept );
+                if( empty( $accept ) ) {
+                    continue;
+                }
+                if( $accept === self::CONTENT_TYPE_WEBSOCKET_EVENTS ) {
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    public static $req_input = null;
-    public static function set_input( $value ) {
-        self::$req_input = $value;
-    }
+    public static function from_req( RequestInterface $request = null, $prefix = '' ): WebSocketContext {
+        if( empty( $request ) ) {
+            $request = static::get_static_request();
+        }
 
-    public static function from_req( $prefix = '' ): WebSocketContext {
-        $connection_id = $_SERVER['HTTP_CONNECTION_ID'] ?? null;
-        if( $connection_id === null ) {
+        $connection_id = $request->getHeaderLine('Connection-Id');
+        if( empty($connection_id) ) {
             throw new ConnectionIdMissingError();
         }
 
-        $input = self::$req_input ?? fopen('php://input', 'r');
+        $input = $request->getBody();
         try {
-            $events = WebSocketEvent::decode_events( Utils::streamFor( $input ) );
+            $events = WebSocketEvent::decode_events( $input );
         } catch( Throwable $ex ) {
             throw new WebSocketDecodeEventError();
         }
 
         $meta = [];
-        foreach( $_SERVER as $key => $value ) {
+        foreach( $request->getHeaders() as $key => $values ) {
             $key = strtolower( $key );
-            if( substr( $key, 0, 10 ) !== 'http_meta_' ) {
+            if( substr( $key, 0, 5 ) !== 'meta-' ) {
                 continue;
             }
-            $key = substr( $key, 10 );
-            $key = str_replace( '_', '-', $key );
-            $meta[ $key ] = $value;
+            $key = substr( $key, 5 );
+            $meta[ $key ] = join(',', $values );
         }
 
         return new WebSocketContext( $connection_id, $meta, $events, $prefix );

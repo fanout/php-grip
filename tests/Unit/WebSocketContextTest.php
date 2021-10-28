@@ -10,11 +10,24 @@ use Fanout\Grip\Data\WebSockets\WebSocketEvent;
 use Fanout\Grip\Errors\ConnectionIdMissingError;
 use Fanout\Grip\Errors\WebSocketDecodeEventError;
 use Fanout\Grip\Tests\Utils\TestStreamData;
+use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 
 class WebSocketContextTest extends TestCase {
+
+    protected function tearDown(): void {
+        unset( $_SERVER['REQUEST_METHOD'] );
+        unset( $_SERVER['HTTP_ACCEPT'] );
+        unset( $_SERVER['HTTP_CONTENT_TYPE'] );
+        unset( $_SERVER['HTTP_CONNECTION_ID'] );
+        unset( $_SERVER['HTTP_META_FOO'] );
+        unset( $_SERVER['HTTP_META_BAR'] );
+        unset( $_SERVER['HTTP_META_BAZ_A'] );
+        WebSocketContext::clear_static_request();
+    }
+
     /**
      * @test
      */
@@ -378,7 +391,7 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldDetectIsWsOverHttpWithContentType() {
+    function shouldDetectIsWsOverHttpWithContentTypeFromGlobals() {
         $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/websocket-events';
         $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
 
@@ -388,7 +401,18 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldDetectIsWsOverHttpWithAccept() {
+    function shouldDetectIsWsOverHttpWithContentTypeFromRequest() {
+        $request = new ServerRequest( 'POST', 'https://example.com/', [
+            'Content-Type' => 'application/websocket-events',
+        ] );
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http( $request ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldDetectIsWsOverHttpWithAcceptFromGlobals() {
         $_SERVER[ 'HTTP_ACCEPT' ] = 'application/websocket-events';
         $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
 
@@ -398,7 +422,18 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldDetectIsWsOverHttpWithMultipleAccepts() {
+    function shouldDetectIsWsOverHttpWithAcceptFromRequest() {
+        $request = new ServerRequest( 'POST', 'https://example.com/', [
+            'Accept' => 'application/websocket-events',
+        ] );
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http( $request ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldDetectIsWsOverHttpWithMultipleAcceptsFromGlobals() {
         $_SERVER[ 'HTTP_ACCEPT' ] = 'application/websocket-events, application/json';
         $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
 
@@ -408,7 +443,21 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldFailDetectIsWsOverHttpWhenNotPost() {
+    function shouldDetectIsWsOverHttpWithMultipleAcceptsFromRequest() {
+        $request = new ServerRequest( 'POST', 'https://example.com/', [
+            'Accept' => [
+                'application/websocket-events',
+                'application/json',
+            ],
+        ] );
+
+        $this->assertTrue( WebSocketContext::is_ws_over_http( $request ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldFailDetectIsWsOverHttpWhenNotPostFromGlobals() {
         $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/websocket-events';
         $_SERVER[ 'REQUEST_METHOD' ] = 'GET';
 
@@ -418,7 +467,18 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldFailDetectIsWsOverHttpWhenNotContentTypeNorAccept() {
+    function shouldFailDetectIsWsOverHttpWhenNotPostFromRequest() {
+        $request = new ServerRequest( 'GET', 'https://example.com/', [
+            'Content-Type' => 'application/websocket-events',
+        ] );
+
+        $this->assertFalse( WebSocketContext::is_ws_over_http( $request ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldFailDetectIsWsOverHttpWhenNotContentTypeNorAcceptFromGlobals() {
         $_SERVER[ 'HTTP_CONTENT_TYPE' ] = 'application/json';
         $_SERVER[ 'HTTP_ACCEPT' ] = 'application/json';
         $_SERVER[ 'REQUEST_METHOD' ] = 'POST';
@@ -429,7 +489,19 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldWebsocketContextFromReqFailWhenNoConnectionId() {
+    function shouldFailDetectIsWsOverHttpWhenNotContentTypeNorAcceptFromRequest() {
+        $request = new ServerRequest( 'POST', 'https://example.com/', [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ] );
+
+        $this->assertFalse( WebSocketContext::is_ws_over_http( $request ) );
+    }
+
+    /**
+     * @test
+     */
+    function shouldWebsocketContextFromReqFailWhenNoConnectionIdFromGlobals() {
         $this->expectException( ConnectionIdMissingError::class );
         WebSocketContext::from_req();
     }
@@ -437,26 +509,46 @@ class WebSocketContextTest extends TestCase {
     /**
      * @test
      */
-    function shouldWebsocketContextFromReqFailWhenBodyDecodeFails() {
+    function shouldWebsocketContextFromReqFailWhenNoConnectionIdFromRequest() {
+        $this->expectException( ConnectionIdMissingError::class );
+        $request = new ServerRequest( 'POST', 'https://example.com/' );
+        WebSocketContext::from_req( $request );
+    }
+
+    /**
+     * @test
+     */
+    function shouldWebsocketContextFromReqFailWhenBodyDecodeFailsFromRequest() {
         $this->expectException( WebSocketDecodeEventError::class );
-        $_SERVER['HTTP_CONNECTION_ID'] = 'cid';
-        WebSocketContext::set_input( "TEXT 5\r\n" );
-        WebSocketContext::from_req();
+        $request = new ServerRequest(
+            'POST',
+            'https://example.com/',
+            [
+                'Connection-Id' => 'cid',
+            ],
+            "TEXT 5\r\n"
+        );
+        WebSocketContext::from_req( $request );
     }
 
     /**
      * @test
      */
     function shouldWebsocketContextFromReq() {
-        $_SERVER['HTTP_CONNECTION_ID'] = 'cid';
         $body = "OPEN\r\nTEXT 5\r\nHello\r\nTEXT 0\r\n\r\nCLOSE\r\nTEXT\r\nCLOSE\r\n";
-        WebSocketContext::set_input( $body );
+        $request = new ServerRequest(
+            'POST',
+            'https://example.com/',
+            [
+                'Connection-Id' => 'cid',
+                'Meta-Foo' => 'hi',
+                'Meta-Bar' => 'ho',
+                'Meta-Baz-A' => 'hello',
+            ],
+            $body
+        );
 
-        $_SERVER['HTTP_META_FOO'] = 'hi';
-        $_SERVER['HTTP_META_BAR'] = 'ho';
-        $_SERVER['HTTP_META_BAZ_A'] = 'hello';
-
-        $ws_context = WebSocketContext::from_req( 'prefix' );
+        $ws_context = WebSocketContext::from_req( $request, 'prefix' );
         $this->assertSame( 'cid', $ws_context->id );
         $this->assertSame( 'prefix', $ws_context->prefix );
 
