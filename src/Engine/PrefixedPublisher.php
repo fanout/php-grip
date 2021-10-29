@@ -11,9 +11,9 @@ class PrefixedPublisher extends Publisher {
      */
     private $prefix;
 
-    public function __construct( $config = [], string $prefix = '' ) {
+    public function __construct( $config = [], string $prefix = null ) {
         parent::__construct( $config );
-        $this->prefix = $prefix;
+        $this->prefix = $prefix ?? '';
     }
 
     public function publish( string $channel, Item $item ): PromiseInterface {
