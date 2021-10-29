@@ -6,6 +6,7 @@ use Fanout\Grip\Data\GripInstruct;
 use Fanout\Grip\Data\WebSockets\WebSocketContext;
 use Fanout\Grip\Errors\GripInstructAlreadyStartedError;
 use Fanout\Grip\Errors\GripInstructNotAvailableError;
+use Fanout\Grip\Middleware\Psr15\GripMiddleware;
 
 class GripContext {
     /**

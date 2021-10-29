@@ -1,6 +1,6 @@
 <?php
 
-namespace Fanout\Grip\Middleware;
+namespace Fanout\Grip\Middleware\Psr15;
 
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\WebSockets\WebSocketContext;
@@ -9,13 +9,16 @@ use Fanout\Grip\Engine\PrefixedPublisher;
 use Fanout\Grip\Engine\Publisher;
 use Fanout\Grip\Errors\ConnectionIdMissingError;
 use Fanout\Grip\Errors\WebSocketDecodeEventError;
+use Fanout\Grip\Middleware\GripContext;
 use Fanout\Grip\Utils\HttpUtil;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class GripMiddleware {
+class GripMiddleware implements MiddlewareInterface {
 
     const SERVER_REQUEST_ATTRIBUTE_NAME = 'fanout/grip_context';
 
@@ -42,7 +45,7 @@ class GripMiddleware {
         $this->publisher = null;
     }
 
-    public function __invoke( ServerRequestInterface $request, ResponseInterface $response, callable $next ): ResponseInterface {
+    public function process( ServerRequestInterface $request, RequestHandlerInterface $handler ): ResponseInterface {
 
         $grip = self::get_grip_context( $request );
         if( $grip === null ) {
@@ -54,7 +57,7 @@ class GripMiddleware {
 
         if( $grip->is_handled() ) {
             // Already ran for this request, returning true
-            return $next( $request, $response );
+            return $handler->handle( $request );
         }
 
         $grip->set_is_handled();
@@ -81,7 +84,7 @@ class GripMiddleware {
             return new Response( 400, [], 'Error parsing WebSocket events.' . PHP_EOL );
         }
 
-        $response = $next( $request, $response );
+        $response = $handler->handle( $request );
 
         if( $ws_context !== null ) {
             $response = $this->apply_ws_context( $request, $response );
