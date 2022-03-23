@@ -25,7 +25,9 @@
   "require": {
     "php": ">=7.2",
     "firebase/php-jwt": "^5.4",
-    "guzzlehttp/guzzle": "^7.0.1",
     "ext-json": "*"
+  },
+  "suggest": {
+    "guzzlehttp/guzzle": "^7.0.1"
   }
 }
