@@ -123,6 +123,21 @@ class GripUriUtilTest extends TestCase {
     /**
      * @test
      */
+    function shouldParseUriWithVerifyIssAndVerifyKey() {
+        $uri = 'https://api.fastly.com/service/service?' .
+            'key=apikey&verify-iss=fastly:service&verify-key=base64:geag121321=';
+        $parsed = GripUriUtil::parse( $uri );
+
+        $this->assertEquals( 'https://api.fastly.com/service/service', $parsed[ 'control_uri' ] );
+        $this->assertEquals( 'apikey', $parsed[ 'key' ] );
+        $this->assertEquals( 'fastly:service', $parsed[ 'verify_iss' ] );
+        $this->assertEquals( base64_decode( 'geag121321=' ), $parsed[ 'verify_key' ] );
+
+    }
+
+    /**
+     * @test
+     */
     function shouldParseUriWithDefaultPort() {
 
         $uri = 'http://api.fanout.io:80/realm/realm/';
