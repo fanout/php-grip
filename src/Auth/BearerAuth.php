@@ -2,7 +2,7 @@
 
 namespace Fanout\Grip\Auth;
 
-class Bearer implements IAuth {
+class BearerAuth implements IAuth {
 
     /** @var string */
     public $token;

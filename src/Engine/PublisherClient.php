@@ -4,6 +4,7 @@
 namespace Fanout\Grip\Engine;
 
 use Fanout\Grip\Auth\BasicAuth;
+use Fanout\Grip\Auth\BearerAuth;
 use Fanout\Grip\Auth\IAuth;
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\Item;
@@ -58,9 +59,15 @@ class PublisherClient {
 
     }
 
-    public function set_auth_jwt( ...$params ) {
+    public function set_auth_jwt( $claim, string $key ) {
 
-        $this->auth = new JwtAuth( ...$params );
+        $this->auth = new JwtAuth( $claim, $key );
+
+    }
+
+    public function set_auth_bearer( string $token ) {
+
+        $this->auth = new BearerAuth( $token );
 
     }
 

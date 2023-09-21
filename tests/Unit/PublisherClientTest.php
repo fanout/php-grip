@@ -5,6 +5,7 @@ namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Auth\BasicAuth;
+use Fanout\Grip\Auth\BearerAuth;
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\FormatBase;
 use Fanout\Grip\Data\Item;
@@ -110,14 +111,14 @@ class PublisherClientTest extends TestCase {
     /**
      * @test
      */
-    function shouldSetJwtAuthWithToken() {
+    function shouldSetBearerAuth() {
         $client = new PublisherClient( 'http://uri' );
 
-        $client->set_auth_jwt( 'token' );
+        $client->set_auth_bearer( 'token' );
 
-        $this->assertInstanceOf( JwtAuth::class, $client->auth );
+        $this->assertInstanceOf( BearerAuth::class, $client->auth );
 
-        /** @var JwtAuth $auth */
+        /** @var BearerAuth $auth */
         $auth = $client->auth;
         $this->assertEquals( 'token', $auth->token );
     }
