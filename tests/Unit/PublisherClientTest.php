@@ -123,6 +123,48 @@ class PublisherClientTest extends TestCase {
         $this->assertEquals( 'token', $auth->token );
     }
 
+
+    /**
+     * @test
+     */
+    function shouldNotSetVerifyComponentsIfNotSet() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+
+        $this->assertEmpty($client->verify_iss);
+        $this->assertEmpty($client->verify_key);
+    }
+
+    /**
+     * @test
+     */
+    function shouldSetVerifyIss() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+        $client->set_verify_iss( 'v_iss' );
+
+        $this->assertEquals( 'v_iss', $client->get_verify_iss() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldSetVerifyKey() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+        $client->set_verify_key( 'v_key' );
+
+        $this->assertEquals( 'v_key', $client->get_verify_key() );
+    }
+
+    function shouldHaveVerifyKeyIfJwtAuthSet() {
+        $client = new PublisherClient( 'http://uri' );
+        $claim = [ 'iss' => 'iss' ];
+        $client->set_auth_jwt( $claim, 'key' );
+
+        $this->assertEquals( 'key', $client->get_verify_key() );
+    }
+
     /**
      * @test
      */

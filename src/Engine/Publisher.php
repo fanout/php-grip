@@ -38,7 +38,9 @@ class Publisher {
             @[
                 'control_uri' => $control_uri,
                 'control_iss' => $control_iss,
-                'key' => $key
+                'key' => $key,
+                'verify_key' => $verify_key,
+                'verify_iss' => $verify_iss
             ] = $config_entry;
             $client = new PublisherClient( $control_uri );
             if( !empty($control_iss) ) {
@@ -48,6 +50,13 @@ class Publisher {
                 $client->set_auth_jwt( [ 'iss' => $control_iss, ], $key );
             } else {
                 $client->set_auth_bearer( $key );
+            }
+
+            if( !empty($verify_iss) ) {
+                $client->verify_iss = $verify_iss;
+            }
+            if( !empty($verify_key) ) {
+                $client->verify_key = $verify_key;
             }
 
             $this->add_client( $client );
