@@ -100,7 +100,7 @@ class PublisherClient {
 
         if( !empty($this->verify_key) ) {
             return $this->verify_key;
-        } else if( $this->verify_key instanceof JwtAuth ) {
+        } else if( $this->auth instanceof JwtAuth ) {
             return $this->auth->key;
         } else {
             return null;
