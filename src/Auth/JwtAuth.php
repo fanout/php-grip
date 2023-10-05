@@ -41,13 +41,16 @@ class JwtAuth implements IAuth {
         return "Bearer " . $token;
     }
 
-    static function validate_signature( $token, $key ): bool {
+    static function validate_signature( $token, $key, $iss = null): bool {
         try {
             $claim = JWT::decode( $token, $key, [ 'HS256' ] );
         } catch( Throwable $ex ) {
             return false;
         }
 
+        if( gettype( $claim ) === 'string' || $claim->iss !== $iss ) {
+            return false;
+        }
         return $claim !== null;
     }
 }
