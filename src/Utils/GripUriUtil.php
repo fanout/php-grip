@@ -46,7 +46,7 @@ class GripUriUtil {
 
         $verify_iss = $parsed_query[ 'verify-iss' ] ?? false;
         if( !empty( $verify_iss ) ) {
-            unset ( $parsed_query[ 'verify-iss' ] );
+            unset( $parsed_query[ 'verify-iss' ] );
         }
 
         $verify_key = $parsed_query[ 'verify-key' ] ?? false;

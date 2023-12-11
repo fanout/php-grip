@@ -21,7 +21,7 @@ class JwtAuth implements IAuth {
 
     /**
      * JwtAuth constructor.
-     * @param array|string $claim_or_token
+     * @param array $claim
      * @param string|null $key
      */
     public function __construct( $claim, string $key ) {
@@ -48,7 +48,7 @@ class JwtAuth implements IAuth {
             return false;
         }
 
-        if( gettype( $claim ) === 'string' || $claim->iss !== $iss ) {
+        if( $iss !== NULL && ( !property_exists( $claim,'iss' ) || $claim->iss !== $iss ) ) {
             return false;
         }
         return $claim !== null;

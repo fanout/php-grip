@@ -48,7 +48,7 @@ class Publisher {
                     $key = '';
                 }
                 $client->set_auth_jwt( [ 'iss' => $control_iss, ], $key );
-            } else {
+            } else if ( !empty( $key ) ) {
                 $client->set_auth_bearer( $key );
             }
 
