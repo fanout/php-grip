@@ -44,6 +44,26 @@ class GripUriUtil {
             $key = base64_decode( $key );
         }
 
+        $verify_iss = $parsed_query[ 'verify-iss' ] ?? false;
+        if( !empty( $verify_iss ) ) {
+            unset( $parsed_query[ 'verify-iss' ] );
+        }
+
+        $verify_key = $parsed_query[ 'verify-key' ] ?? false;
+        if( !empty( $verify_key ) ) {
+            unset( $parsed_query[ 'verify-key' ] );
+        }
+
+        if( !empty( $verify_key ) && StringUtil::string_starts_with( $verify_key, 'base64:' ) ) {
+            $verify_key = substr( $verify_key, 7 );
+            // When the key contains a '+' character, if the URL is built carelessly
+            // and this segment of the URL contained '+' directly instead of properly
+            // being URL-encoded as %2B, then they would have turned into spaces at
+            // this point. Turn them back into pluses before decoding the key from base64.
+            $verify_key = str_replace( ' ', '+', $verify_key );
+            $verify_key = base64_decode( $verify_key );
+        }
+
         $rebuilt_query = http_build_query( $parsed_query );
 
         if( !empty( $rebuilt_query ) ) {
@@ -58,6 +78,12 @@ class GripUriUtil {
         }
         if( !empty( $key ) ) {
             $out[ 'key' ] = $key;
+        }
+        if( !empty( $verify_key ) ) {
+            $out[ 'verify_key' ] = $verify_key;
+        } 
+        if( !empty( $verify_iss ) ) {
+            $out[ 'verify_iss' ] = $verify_iss;
         }
 
         return $out;

@@ -5,6 +5,7 @@ namespace Fanout\Grip\Tests\Unit;
 
 
 use Fanout\Grip\Auth\BasicAuth;
+use Fanout\Grip\Auth\BearerAuth;
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\FormatBase;
 use Fanout\Grip\Data\Item;
@@ -110,16 +111,58 @@ class PublisherClientTest extends TestCase {
     /**
      * @test
      */
-    function shouldSetJwtAuthWithToken() {
+    function shouldSetBearerAuth() {
         $client = new PublisherClient( 'http://uri' );
 
-        $client->set_auth_jwt( 'token' );
+        $client->set_auth_bearer( 'token' );
 
-        $this->assertInstanceOf( JwtAuth::class, $client->auth );
+        $this->assertInstanceOf( BearerAuth::class, $client->auth );
 
-        /** @var JwtAuth $auth */
+        /** @var BearerAuth $auth */
         $auth = $client->auth;
         $this->assertEquals( 'token', $auth->token );
+    }
+
+
+    /**
+     * @test
+     */
+    function shouldNotSetVerifyComponentsIfNotSet() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+
+        $this->assertEmpty($client->verify_iss);
+        $this->assertEmpty($client->verify_key);
+    }
+
+    /**
+     * @test
+     */
+    function shouldSetVerifyIss() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+        $client->set_verify_iss( 'v_iss' );
+
+        $this->assertEquals( 'v_iss', $client->get_verify_iss() );
+    }
+
+    /**
+     * @test
+     */
+    function shouldSetVerifyKey() {
+        $client = new PublisherClient( 'http://uri' );
+        $client->set_auth_bearer( 'token' );
+        $client->set_verify_key( 'v_key' );
+
+        $this->assertEquals( 'v_key', $client->get_verify_key() );
+    }
+
+    function shouldHaveVerifyKeyIfJwtAuthSet() {
+        $client = new PublisherClient( 'http://uri' );
+        $claim = [ 'iss' => 'iss' ];
+        $client->set_auth_jwt( $claim, 'key' );
+
+        $this->assertEquals( 'key', $client->get_verify_key() );
     }
 
     /**

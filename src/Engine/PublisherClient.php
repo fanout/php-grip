@@ -4,6 +4,7 @@
 namespace Fanout\Grip\Engine;
 
 use Fanout\Grip\Auth\BasicAuth;
+use Fanout\Grip\Auth\BearerAuth;
 use Fanout\Grip\Auth\IAuth;
 use Fanout\Grip\Auth\JwtAuth;
 use Fanout\Grip\Data\Item;
@@ -36,6 +37,13 @@ class PublisherClient {
      */
     public static $guzzle_client;
 
+    /**
+     * @var string
+     */
+    public $verify_key;
+
+    public $verify_iss;
+
     public function __construct( string $uri ) {
         if (StringUtil::string_ends_with( $uri, '/' )) {
             $uri = substr( $uri, 0, strlen( $uri ) - 1 );
@@ -58,9 +66,45 @@ class PublisherClient {
 
     }
 
-    public function set_auth_jwt( ...$params ) {
+    public function set_auth_jwt( $claim, string $key ) {
 
-        $this->auth = new JwtAuth( ...$params );
+        $this->auth = new JwtAuth( $claim, $key );
+
+    }
+
+    public function set_auth_bearer( string $token ) {
+
+        $this->auth = new BearerAuth( $token );
+
+    }
+
+    public function set_verify_iss( $verify_iss ) {
+
+        $this->verify_iss = $verify_iss;
+
+    }
+
+    public function get_verify_iss() {
+
+        return $this->verify_iss;
+
+    }
+
+    public function set_verify_key( $verify_key ) {
+
+        $this->verify_key = $verify_key;
+
+    }
+
+    public function get_verify_key() {
+
+        if( !empty($this->verify_key) ) {
+            return $this->verify_key;
+        } else if( $this->auth instanceof JwtAuth ) {
+            return $this->auth->key;
+        } else {
+            return null;
+        }
 
     }
 

@@ -20,17 +20,6 @@ class JwtAuthTest extends TestCase {
 
     }
 
-    /**
-     * @test
-     */
-    public function shouldConstructWithToken() {
-
-        $jwt_auth = new JwtAuth( 'token' );
-        $this->assertEmpty( $jwt_auth->claim );
-        $this->assertEmpty( $jwt_auth->key );
-        $this->assertSame( 'token', $jwt_auth->token );
-
-    }
 
     /**
      * @test
@@ -48,17 +37,6 @@ class JwtAuthTest extends TestCase {
 
     }
 
-    /**
-     * @test
-     */
-    public function shouldBuildHeaderFromToken() {
-
-        $jwt_auth = new JwtAuth( 'token' );
-
-        $header = $jwt_auth->build_header();
-        $this->assertSame( 'Bearer token', $header );
-
-    }
 
     /**
      * @test
