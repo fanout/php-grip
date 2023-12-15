@@ -12,7 +12,7 @@ This library also supports legacy services hosted by [Fanout](https://fanout.io/
 
 Authors: Katsuyuki Omuro <komuro@fastly.com>, Madeline Boby <maddie.boby@fastly.com>
 
-## New
+## New for 1.1.0
 
 - Support for `verify_iss` and `verify_key` GRIP configurations and parsing them from GRIP_URLs.
 - Support for Bearer tokens, using the new `Fanout\Grip\Auth\BearerAuth` class.

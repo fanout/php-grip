@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [1.1.0] - 2023-12-15
+
 ### Added
 - Support for `verify_iss` and `verify_key` GRIP configurations and parsing them from GRIP_URLs.
 - Support for Bearer tokens, using the new `Fanout\Grip\Auth\BearerAuth` class.
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized utility functions into categorized files.
 - Install using Composer.  Classes loaded using PSR-4.
 
-[unreleased]: https://github.com/fanout/php-grip/v1.0.1...HEAD
+[unreleased]: https://github.com/fanout/php-grip/v1.1.0...HEAD
+[1.1.0]: https://github.com/fanout/php-grip/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/fanout/php-grip/compare/1.0...v1.0.1
 [1.0]: https://github.com/fanout/php-grip/releases/tag/1.0
