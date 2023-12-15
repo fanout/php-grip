@@ -148,7 +148,7 @@ class PublisherTest extends TestCase {
         $this->assertEquals( 'key==', $auth->key );
 
         $this->assertEmpty( $publisher->clients[0]->get_verify_iss() );
-        $this->assertEmpty( $publisher->clients[0]->get_verify_key() );
+        $this->assertEquals( 'key==', $publisher->clients[0]->get_verify_key() );
 
         $this->assertEquals( 'http://uri2', $publisher->clients[1]->uri );
         $this->assertInstanceOf( JwtAuth::class, $publisher->clients[1]->auth );
@@ -171,7 +171,7 @@ class PublisherTest extends TestCase {
         $this->assertEquals( 'key==3', $auth->key );
 
         $this->assertEmpty( $publisher->clients[2]->get_verify_iss() );
-        $this->assertEmpty( $publisher->clients[2]->get_verify_key() );
+        $this->assertEquals( 'key==3', $publisher->clients[2]->get_verify_key() );
 
         $this->assertEquals( 'http://uri4', $publisher->clients[3]->uri );
         $this->assertInstanceOf( BearerAuth::class, $publisher->clients[3]->auth );
