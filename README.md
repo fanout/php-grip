@@ -6,16 +6,19 @@ that support the GRIP interface, such as Pushpin.
 Supported GRIP servers include:
 
 * [Pushpin](http://pushpin.org/)
-* [Fanout Cloud](https://fanout.io/cloud/)
+* [Fastly Fanout](https://docs.fastly.com/products/fanout)
 
-Author: Katsuyuki Ohmuro <kats@fanout.io>
+This library also supports legacy services hosted by [Fanout](https://fanout.io/) Cloud.
 
-- Major update with great improvements in usability
-- Uses Guzzle (and its Promises library) for HTTP fetching and asynchronous functionality.
-- Collapsed `php-pubcontrol` and `php-gripcontrol` into a single library,
-  simplifying use and deployment.
-- Reorganized utility functions into categorized files.
-- Install using Composer.  Classes loaded using PSR-4.
+Authors: Katsuyuki Omuro <komuro@fastly.com>, Madeline Boby <maddie.boby@fastly.com>
+
+## New
+
+- Support for `verify_iss` and `verify_key` GRIP configurations and parsing them from GRIP_URLs.
+- Support for Bearer tokens, using the new `Fanout\Grip\Auth\BearerAuth` class.
+  - Use a Bearer token by using a GRIP configuration with `key`, but without a `control_iss`. This can also be parsed
+    from `GRIP_URL` that have a `key` without an `iss`.
+- Updated with full support for Fastly Fanout.
 
 ## Requirements
 
@@ -45,3 +48,11 @@ see README.md in the `examples/http-stream` directory.
 
 For a WS-over-HTTP example,
 see README.md in the `examples/ws-over-http` directory.
+
+## Testing
+
+Run tests using the following command:
+
+```
+./vendor/bin/phpunit
+```
